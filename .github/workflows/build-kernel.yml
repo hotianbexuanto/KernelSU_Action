@@ -504,6 +504,29 @@ jobs:
         
         sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
         
+        # 处理 free_fallhub
+        echo "Setting up free_fallhub..."
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub || true
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS free fall sensor configuration
+        #
+        
+        config OPLUS_FEATURE_FREE_FALL
+          bool "OPLUS free fall sensor"
+          default n
+          help
+            Enable free fall sensor support for OPLUS device.
+            This option provides free fall detection features
+            through sensor monitoring and detection.
+        EOF
+        
+        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
