@@ -12,4 +12,19 @@ config OPLUS_FEATURE_SCHED_ASSIST
 	  This option provides additional scheduling optimizations
 	  for better system performance.
 
+endmenu
+
+menu "Scheduler features"
+
+config UCLAMP_TASK
+	bool "Enable utilization clamping for RT/FAIR tasks"
+	depends on CPU_FREQ_GOV_SCHEDUTIL
+	default n
+	help
+	  This feature enables the scheduler to track the clamped utilization
+	  of each CPU based on RUNNABLE tasks currently scheduled on that CPU.
+
+# 在这里添加 sched_assist 的配置
+source "kernel/sched_assist/Kconfig"
+
 endmenu 
