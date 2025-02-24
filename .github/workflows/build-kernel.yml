@@ -247,9 +247,13 @@ jobs:
 
     - name: Setup Kernel Source
       run: |
-        mkdir -p kernel/sched_assist
+        # 检查目录是否存在，如果不存在则创建
+        if [ ! -d "kernel/sched_assist" ]; then
+          mkdir -p kernel/sched_assist
+        fi
         chmod 755 kernel/sched_assist
         
+        # 创建或覆盖 Kconfig 文件
         cat > kernel/sched_assist/Kconfig << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
