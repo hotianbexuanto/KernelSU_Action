@@ -527,6 +527,29 @@ jobs:
         
         sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig
         
+        # 处理 pickup_detecthub
+        echo "Setting up pickup_detecthub..."
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub || true
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS pickup detect sensor configuration
+        #
+        
+        config OPLUS_FEATURE_PICKUP_DETECT
+          bool "OPLUS pickup detect sensor"
+          default n
+          help
+            Enable pickup detect sensor support for OPLUS device.
+            This option provides pickup detection features
+            through sensor monitoring and detection.
+        EOF
+        
+        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
