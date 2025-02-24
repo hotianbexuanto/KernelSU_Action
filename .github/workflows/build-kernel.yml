@@ -480,6 +480,30 @@ jobs:
         
         sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
         
+        # 处理 camera_protecthub
+        echo "Setting up camera_protecthub..."
+        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
+        
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS camera protect sensor configuration
+        #
+        
+        config OPLUS_FEATURE_CAMERA_PROTECT
+          bool "OPLUS camera protect sensor"
+          default n
+          help
+            Enable camera protect sensor support for OPLUS device.
+            This option provides camera protection features
+            through sensor monitoring and detection.
+        EOF
+        
+        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
@@ -491,6 +515,7 @@ jobs:
         ls -la mm/healthinfo/ || true
         ls -la net/oplus_modules/ || true
         ls -la drivers/base/kernelFwUpdate/ || true
+        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
