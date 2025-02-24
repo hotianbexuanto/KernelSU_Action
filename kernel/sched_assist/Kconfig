@@ -16,3 +16,11 @@ config SRCARCH
 	option env="SRCARCH"
 
 source "arch/$SRCARCH/Kconfig"
+
+config OPLUS_FEATURE_SCHED_ASSIST
+	bool "Scheduler Assist Feature"
+	default n
+	help
+	  Enable support for OPLUS scheduler assist features.
+	  This option provides additional scheduling optimizations
+	  for better system performance.
