@@ -485,7 +485,7 @@ jobs:
         # 处理所有传感器目录
         echo "Setting up sensor directories..."
         sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub,lux_aodhub,pedo_minutehub,oplus_activity_recognitionhub} || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub,lux_aodhub,pedo_minutehub,oplus_activity_recognitionhub,tp_gesturehub} || true
         
         # 设置权限
         sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
@@ -601,6 +601,22 @@ jobs:
             Enable activity recognition sensor support for OPLUS device.
             This option provides activity detection and recognition
             features through sensor fusion and analysis.
+        EOF
+        
+        # 创建 tp_gesturehub 配置
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/tp_gesturehub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS touchpanel gesture sensor configuration
+        #
+        
+        config OPLUS_FEATURE_TP_GESTURE
+          bool "OPLUS touchpanel gesture sensor"
+          default n
+          help
+            Enable touchpanel gesture sensor support for OPLUS device.
+            This option provides touchpanel gesture detection features
+            for enhanced user interaction capabilities.
         EOF
         
         # 设置所有配置文件权限
