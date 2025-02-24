@@ -11,12 +11,6 @@ config UCLAMP_TASK
 	  This feature enables the scheduler to track the clamped utilization
 	  of each CPU based on RUNNABLE tasks currently scheduled on that CPU.
 
-config OPLUS_FEATURE_SCHED_ASSIST
-	bool "OPLUS Scheduler Assist Feature"
-	default n
-	help
-	  Enable support for OPLUS scheduler assist features.
-	  This option provides additional scheduling optimizations
-	  for better system performance.
+source "kernel/sched_assist/Kconfig"
 
 endmenu
