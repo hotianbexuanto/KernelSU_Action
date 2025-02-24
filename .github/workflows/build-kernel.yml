@@ -485,7 +485,7 @@ jobs:
         # 处理所有传感器目录
         echo "Setting up sensor directories..."
         sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub,lux_aodhub,pedo_minutehub} || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub,lux_aodhub,pedo_minutehub,oplus_activity_recognitionhub} || true
         
         # 设置权限
         sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
@@ -585,6 +585,22 @@ jobs:
             Enable pedometer minute sensor support for OPLUS device.
             This option provides step counting features with
             minute-level precision for fitness tracking.
+        EOF
+        
+        # 创建 oplus_activity_recognitionhub 配置
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/oplus_activity_recognitionhub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS activity recognition sensor configuration
+        #
+        
+        config OPLUS_FEATURE_ACTIVITY_RECOGNITION
+          bool "OPLUS activity recognition sensor"
+          default n
+          help
+            Enable activity recognition sensor support for OPLUS device.
+            This option provides activity detection and recognition
+            features through sensor fusion and analysis.
         EOF
         
         # 设置所有配置文件权限
