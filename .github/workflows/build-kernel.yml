@@ -485,7 +485,7 @@ jobs:
         # 处理所有传感器目录
         echo "Setting up sensor directories..."
         sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub} || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub,lux_aodhub} || true
         
         # 设置权限
         sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
@@ -553,6 +553,22 @@ jobs:
             Enable fingerprint display sensor support for OPLUS device.
             This option provides fingerprint display detection features
             through sensor monitoring and detection.
+        EOF
+        
+        # 创建 lux_aodhub 配置
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/lux_aodhub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS AOD light sensor configuration
+        #
+        
+        config OPLUS_FEATURE_LUX_AOD
+          bool "OPLUS AOD light sensor"
+          default n
+          help
+            Enable AOD light sensor support for OPLUS device.
+            This option provides ambient light detection features
+            for Always-On Display functionality.
         EOF
         
         # 设置所有配置文件权限
