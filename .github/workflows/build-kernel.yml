@@ -247,30 +247,13 @@ jobs:
 
     - name: Setup Kernel Source
       run: |
-        # 显示当前目录
-        pwd
-        echo "Current directory contents:"
-        ls -la
-        
-        echo "Checking kernel directory:"
-        ls -la kernel/
-        
-        echo "Attempting to remove directory with sudo..."
+        # 创建 sched_assist 目录和配置
+        echo "Setting up sched_assist..."
         sudo rm -rf kernel/sched_assist
-        
-        echo "Checking if directory was removed:"
-        ls -la kernel/
-        
-        echo "Creating new directory with sudo..."
         sudo mkdir -p kernel/sched_assist
-        
-        echo "Setting directory ownership..."
         sudo chown -R runner:docker kernel/sched_assist
-        
-        echo "Setting permissions..."
         sudo chmod 755 kernel/sched_assist
         
-        echo "Creating Kconfig file..."
         cat > kernel/sched_assist/Kconfig << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -287,11 +270,34 @@ jobs:
             animation optimization.
         EOF
         
-        echo "Setting file permissions..."
         sudo chmod 644 kernel/sched_assist/Kconfig
+        
+        # 创建 klockopt 目录和配置
+        echo "Setting up klockopt..."
+        sudo mkdir -p kernel/locking/klockopt
+        sudo chown -R runner:docker kernel/locking/klockopt
+        sudo chmod 755 kernel/locking/klockopt
+        
+        cat > kernel/locking/klockopt/Kconfig << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS klockopt configuration
+        #
+        
+        config OPLUS_FEATURE_KLOCKOPT
+          bool "OPLUS kernel lock optimization"
+          default n
+          help
+            Enable kernel lock optimization feature for OPLUS device.
+            This option provides optimizations for kernel locking
+            mechanisms to improve performance.
+        EOF
+        
+        sudo chmod 644 kernel/locking/klockopt/Kconfig
         
         echo "Final directory structure:"
         ls -la kernel/sched_assist/
+        ls -la kernel/locking/klockopt/
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
