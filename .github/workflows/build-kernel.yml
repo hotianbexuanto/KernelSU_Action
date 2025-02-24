@@ -249,7 +249,9 @@ jobs:
       run: |
         # 创建 sched_assist 目录和配置
         echo "Setting up sched_assist..."
-        sudo rm -rf kernel/sched_assist
+        if [ -d "kernel/sched_assist" ]; then
+          sudo rm -rf kernel/sched_assist
+        fi
         sudo mkdir -p kernel/sched_assist
         sudo chown -R runner:docker kernel/sched_assist
         sudo chmod 755 kernel/sched_assist
@@ -274,6 +276,9 @@ jobs:
         
         # 创建 klockopt 目录和配置
         echo "Setting up klockopt..."
+        if [ -d "kernel/locking/klockopt" ]; then
+          sudo rm -rf kernel/locking/klockopt
+        fi
         sudo mkdir -p kernel/locking/klockopt
         sudo chown -R runner:docker kernel/locking/klockopt
         sudo chmod 755 kernel/locking/klockopt
