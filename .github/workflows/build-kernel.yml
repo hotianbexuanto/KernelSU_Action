@@ -368,6 +368,30 @@ jobs:
         
         sudo chmod 644 mm/task_mem/Kconfig
         
+        # 处理 multi_kswapd
+        echo "Setting up multi_kswapd..."
+        sudo rm -rf mm/multi_kswapd || true
+        sudo mkdir -p mm/multi_kswapd || true
+        sudo chown -R runner:docker mm/multi_kswapd
+        sudo chmod -R 755 mm/multi_kswapd
+        
+        sudo tee mm/multi_kswapd/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS multi kswapd configuration
+        #
+        
+        config OPLUS_FEATURE_MULTI_KSWAPD
+          bool "OPLUS multi kswapd support"
+          default n
+          help
+            Enable multiple kswapd threads support for OPLUS device.
+            This option allows running multiple kernel swap daemons
+            to improve memory reclaim performance.
+        EOF
+        
+        sudo chmod 644 mm/multi_kswapd/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
@@ -375,6 +399,7 @@ jobs:
         ls -la block/foreground_io_opt/ || true
         ls -la mm/malloc_track/ || true
         ls -la mm/task_mem/ || true
+        ls -la mm/multi_kswapd/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
