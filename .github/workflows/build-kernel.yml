@@ -392,6 +392,30 @@ jobs:
         
         sudo chmod 644 mm/multi_kswapd/Kconfig
         
+        # 处理 healthinfo
+        echo "Setting up healthinfo..."
+        sudo rm -rf mm/healthinfo || true
+        sudo mkdir -p mm/healthinfo || true
+        sudo chown -R runner:docker mm/healthinfo
+        sudo chmod -R 755 mm/healthinfo
+        
+        sudo tee mm/healthinfo/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS healthinfo configuration
+        #
+        
+        config OPLUS_FEATURE_HEALTHINFO
+          bool "OPLUS healthinfo support"
+          default n
+          help
+            Enable healthinfo feature for OPLUS device.
+            This option provides system health monitoring
+            and diagnostic capabilities.
+        EOF
+        
+        sudo chmod 644 mm/healthinfo/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
@@ -400,6 +424,7 @@ jobs:
         ls -la mm/malloc_track/ || true
         ls -la mm/task_mem/ || true
         ls -la mm/multi_kswapd/ || true
+        ls -la mm/healthinfo/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
