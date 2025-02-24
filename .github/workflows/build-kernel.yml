@@ -456,6 +456,30 @@ jobs:
         
         sudo chmod 644 net/oplus_modules/Kconfig
         
+        # 处理 kernelFwUpdate
+        echo "Setting up kernelFwUpdate..."
+        sudo rm -rf drivers/base/kernelFwUpdate || true
+        sudo mkdir -p drivers/base/kernelFwUpdate || true
+        sudo chown -R runner:docker drivers/base/kernelFwUpdate
+        sudo chmod -R 755 drivers/base/kernelFwUpdate
+        
+        sudo tee drivers/base/kernelFwUpdate/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS kernel firmware update configuration
+        #
+        
+        config OPLUS_FEATURE_KERNEL_FW_UPDATE
+          bool "OPLUS kernel firmware update support"
+          default n
+          help
+            Enable kernel firmware update feature for OPLUS device.
+            This option provides mechanisms for updating various
+            firmware components through the kernel.
+        EOF
+        
+        sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
@@ -466,6 +490,7 @@ jobs:
         ls -la mm/multi_kswapd/ || true
         ls -la mm/healthinfo/ || true
         ls -la net/oplus_modules/ || true
+        ls -la drivers/base/kernelFwUpdate/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
