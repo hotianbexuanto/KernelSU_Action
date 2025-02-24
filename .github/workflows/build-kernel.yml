@@ -416,6 +416,46 @@ jobs:
         
         sudo chmod 644 mm/healthinfo/Kconfig
         
+        # 处理 oplus_modules
+        echo "Setting up oplus_modules..."
+        sudo rm -rf net/oplus_modules || true
+        sudo mkdir -p net/oplus_modules || true
+        sudo chown -R runner:docker net/oplus_modules
+        sudo chmod -R 755 net/oplus_modules
+        
+        sudo tee net/oplus_modules/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS network modules configuration
+        #
+        
+        config OPLUS_FEATURE_WIFI_SLA
+          bool "OPLUS WiFi SLA support"
+          default n
+          help
+            Enable WiFi SLA (Service Level Agreement) feature.
+            This option provides WiFi quality monitoring and
+            optimization capabilities.
+            
+        config OPLUS_FEATURE_WIFI_OPLUSWFD
+          bool "OPLUS WiFi Display support"
+          default n
+          help
+            Enable OPLUS WiFi Display feature.
+            This option provides enhanced WiFi display
+            functionality for better user experience.
+            
+        config OPLUS_FEATURE_WIFI_MTUDETECT
+          bool "OPLUS WiFi MTU detection"
+          default n
+          help
+            Enable WiFi MTU detection feature.
+            This option helps optimize network packet size
+            for better network performance.
+        EOF
+        
+        sudo chmod 644 net/oplus_modules/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
@@ -425,6 +465,7 @@ jobs:
         ls -la mm/task_mem/ || true
         ls -la mm/multi_kswapd/ || true
         ls -la mm/healthinfo/ || true
+        ls -la net/oplus_modules/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
