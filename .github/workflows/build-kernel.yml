@@ -252,23 +252,26 @@ jobs:
         echo "Current directory contents:"
         ls -la
         
-        # 检查并删除已存在的目录（如果存在）
-        if [ -d "kernel/sched_assist" ]; then
-          echo "Directory exists, removing it..."
-          rm -rf kernel/sched_assist
-        fi
+        echo "Checking kernel directory:"
+        ls -la kernel/
         
-        echo "Creating new directory..."
-        mkdir -p kernel/sched_assist || {
-          echo "Failed to create directory, trying with sudo..."
-          sudo mkdir -p kernel/sched_assist
-        }
+        echo "Attempting to remove directory with sudo..."
+        sudo rm -rf kernel/sched_assist
+        
+        echo "Checking if directory was removed:"
+        ls -la kernel/
+        
+        echo "Creating new directory with sudo..."
+        sudo mkdir -p kernel/sched_assist
+        
+        echo "Setting directory ownership..."
+        sudo chown -R runner:docker kernel/sched_assist
         
         echo "Setting permissions..."
         sudo chmod 755 kernel/sched_assist
         
         echo "Creating Kconfig file..."
-        sudo cat > kernel/sched_assist/Kconfig << 'EOF'
+        cat > kernel/sched_assist/Kconfig << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS scheduler assist configuration
