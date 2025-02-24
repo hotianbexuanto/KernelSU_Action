@@ -482,7 +482,7 @@ jobs:
         
         # 处理 camera_protecthub
         echo "Setting up camera_protecthub..."
-        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
+        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
         sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
         sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
         sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
@@ -549,6 +549,29 @@ jobs:
         EOF
         
         sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig
+        
+        # 处理 fp_displayhub
+        echo "Setting up fp_displayhub..."
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub || true
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS fingerprint display sensor configuration
+        #
+        
+        config OPLUS_FEATURE_FP_DISPLAY
+          bool "OPLUS fingerprint display sensor"
+          default n
+          help
+            Enable fingerprint display sensor support for OPLUS device.
+            This option provides fingerprint display detection features
+            through sensor monitoring and detection.
+        EOF
+        
+        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub/Kconfig
         
         # 显示最终结果
         echo "Final directory structure:"
