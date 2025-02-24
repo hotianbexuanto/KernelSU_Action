@@ -320,11 +320,36 @@ jobs:
         
         sudo chmod 644 block/foreground_io_opt/Kconfig
         
+        # 处理 malloc_track
+        echo "Setting up malloc_track..."
+        sudo rm -rf mm/malloc_track || true
+        sudo mkdir -p mm/malloc_track || true
+        sudo chown -R runner:docker mm/malloc_track
+        sudo chmod -R 755 mm/malloc_track
+        
+        sudo tee mm/malloc_track/Kconfig.compat > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS malloc track configuration
+        #
+        
+        config OPLUS_FEATURE_MALLOC_TRACK
+          bool "OPLUS malloc tracking"
+          default n
+          help
+            Enable malloc tracking feature for OPLUS device.
+            This option provides memory allocation tracking
+            for debugging memory leaks and usage patterns.
+        EOF
+        
+        sudo chmod 644 mm/malloc_track/Kconfig.compat
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
         ls -la kernel/locking/klockopt/ || true
         ls -la block/foreground_io_opt/ || true
+        ls -la mm/malloc_track/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
