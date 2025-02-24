@@ -344,12 +344,37 @@ jobs:
         
         sudo chmod 644 mm/malloc_track/Kconfig.compat
         
+        # 处理 task_mem
+        echo "Setting up task_mem..."
+        sudo rm -rf mm/task_mem || true
+        sudo mkdir -p mm/task_mem || true
+        sudo chown -R runner:docker mm/task_mem
+        sudo chmod -R 755 mm/task_mem
+        
+        sudo tee mm/task_mem/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS task memory configuration
+        #
+        
+        config OPLUS_FEATURE_TASK_MEM
+          bool "OPLUS task memory tracking"
+          default n
+          help
+            Enable task memory tracking feature for OPLUS device.
+            This option provides per-task memory usage tracking
+            and analysis capabilities.
+        EOF
+        
+        sudo chmod 644 mm/task_mem/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
         ls -la kernel/locking/klockopt/ || true
         ls -la block/foreground_io_opt/ || true
         ls -la mm/malloc_track/ || true
+        ls -la mm/task_mem/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
