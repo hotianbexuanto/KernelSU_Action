@@ -482,10 +482,10 @@ jobs:
         
         # 处理 camera_protecthub
         echo "Setting up camera_protecthub..."
-        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
         sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
         
         sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
