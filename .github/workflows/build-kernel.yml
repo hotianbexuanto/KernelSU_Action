@@ -245,6 +245,30 @@ jobs:
         key: build-kernel-${{ env.DEVICE }}${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}
         max-size: 2G
 
+    - name: Setup Kernel Source
+      run: |
+        mkdir -p kernel/sched_assist
+        chmod 755 kernel/sched_assist
+        
+        cat > kernel/sched_assist/Kconfig << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS scheduler assist configuration
+        #
+        
+        config OPLUS_FEATURE_SCHED_ASSIST
+          bool "OPLUS scheduler assist"
+          default n
+          help
+            Enable scheduler assist feature for OPLUS device.
+            Including ui thread scheduling optimization,
+            render thread scheduling optimization and
+            animation optimization.
+        EOF
+        
+        chmod 644 kernel/sched_assist/Kconfig
+      working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
