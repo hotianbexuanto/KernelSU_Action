@@ -480,13 +480,16 @@ jobs:
         
         sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
         
-        # 处理 camera_protecthub
-        echo "Setting up camera_protecthub..."
-        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        # 处理所有传感器目录
+        echo "Setting up sensor directories..."
+        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub} || true
+        
+        # 设置权限
         sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
         sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
         
+        # 创建 camera_protecthub 配置
         sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -502,14 +505,7 @@ jobs:
             through sensor monitoring and detection.
         EOF
         
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
-        
-        # 处理 free_fallhub
-        echo "Setting up free_fallhub..."
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub || true
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        
+        # 创建 free_fallhub 配置
         sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -525,14 +521,7 @@ jobs:
             through sensor monitoring and detection.
         EOF
         
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig
-        
-        # 处理 pickup_detecthub
-        echo "Setting up pickup_detecthub..."
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub || true
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        
+        # 创建 pickup_detecthub 配置
         sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -548,14 +537,7 @@ jobs:
             through sensor monitoring and detection.
         EOF
         
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig
-        
-        # 处理 fp_displayhub
-        echo "Setting up fp_displayhub..."
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub || true
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        
+        # 创建 fp_displayhub 配置
         sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -571,21 +553,8 @@ jobs:
             through sensor monitoring and detection.
         EOF
         
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub/Kconfig
-        
-        # 显示最终结果
-        echo "Final directory structure:"
-        ls -la kernel/sched_assist/ || true
-        ls -la kernel/locking/klockopt/ || true
-        ls -la block/foreground_io_opt/ || true
-        ls -la mm/malloc_track/ || true
-        ls -la mm/task_mem/ || true
-        ls -la mm/multi_kswapd/ || true
-        ls -la mm/healthinfo/ || true
-        ls -la net/oplus_modules/ || true
-        ls -la drivers/base/kernelFwUpdate/ || true
-        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/ || true
-      working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
+        # 设置所有配置文件权限
+        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/*/Kconfig
 
     - name: Build kernel
       run: |
