@@ -247,16 +247,20 @@ jobs:
 
     - name: Setup Kernel Source
       run: |
-        # 创建 sched_assist 目录和配置
-        echo "Setting up sched_assist..."
-        if [ -d "kernel/sched_assist" ]; then
-          sudo rm -rf kernel/sched_assist
-        fi
-        sudo mkdir -p kernel/sched_assist
-        sudo chown -R runner:docker kernel/sched_assist
-        sudo chmod 755 kernel/sched_assist
+        # 显示当前工作目录和内容
+        pwd
+        echo "Current directory structure:"
+        ls -la kernel/
         
-        cat > kernel/sched_assist/Kconfig << 'EOF'
+        # 处理 sched_assist
+        echo "Setting up sched_assist..."
+        sudo rm -rf kernel/sched_assist || true
+        sudo mkdir -p kernel/sched_assist || true
+        sudo chown -R runner:docker kernel/sched_assist
+        sudo chmod -R 755 kernel/sched_assist
+        
+        # 创建 sched_assist 配置
+        sudo tee kernel/sched_assist/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS scheduler assist configuration
@@ -274,16 +278,15 @@ jobs:
         
         sudo chmod 644 kernel/sched_assist/Kconfig
         
-        # 创建 klockopt 目录和配置
+        # 处理 klockopt
         echo "Setting up klockopt..."
-        if [ -d "kernel/locking/klockopt" ]; then
-          sudo rm -rf kernel/locking/klockopt
-        fi
-        sudo mkdir -p kernel/locking/klockopt
+        sudo rm -rf kernel/locking/klockopt || true
+        sudo mkdir -p kernel/locking/klockopt || true
         sudo chown -R runner:docker kernel/locking/klockopt
-        sudo chmod 755 kernel/locking/klockopt
+        sudo chmod -R 755 kernel/locking/klockopt
         
-        cat > kernel/locking/klockopt/Kconfig << 'EOF'
+        # 创建 klockopt 配置
+        sudo tee kernel/locking/klockopt/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS klockopt configuration
@@ -300,9 +303,10 @@ jobs:
         
         sudo chmod 644 kernel/locking/klockopt/Kconfig
         
+        # 显示最终结果
         echo "Final directory structure:"
-        ls -la kernel/sched_assist/
-        ls -la kernel/locking/klockopt/
+        ls -la kernel/sched_assist/ || true
+        ls -la kernel/locking/klockopt/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
