@@ -247,6 +247,8 @@ jobs:
 
     - name: Setup Kernel Source
       run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        
         # 处理 sched_assist
         echo "Setting up sched_assist..."
         sudo rm -rf kernel/sched_assist || true
