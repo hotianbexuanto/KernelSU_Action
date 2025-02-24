@@ -247,11 +247,6 @@ jobs:
 
     - name: Setup Kernel Source
       run: |
-        # 显示当前工作目录和内容
-        pwd
-        echo "Current directory structure:"
-        ls -la kernel/
-        
         # 处理 sched_assist
         echo "Setting up sched_assist..."
         sudo rm -rf kernel/sched_assist || true
@@ -259,7 +254,6 @@ jobs:
         sudo chown -R runner:docker kernel/sched_assist
         sudo chmod -R 755 kernel/sched_assist
         
-        # 创建 sched_assist 配置
         sudo tee kernel/sched_assist/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -285,7 +279,6 @@ jobs:
         sudo chown -R runner:docker kernel/locking/klockopt
         sudo chmod -R 755 kernel/locking/klockopt
         
-        # 创建 klockopt 配置
         sudo tee kernel/locking/klockopt/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
@@ -303,10 +296,35 @@ jobs:
         
         sudo chmod 644 kernel/locking/klockopt/Kconfig
         
+        # 处理 foreground_io_opt
+        echo "Setting up foreground_io_opt..."
+        sudo rm -rf block/foreground_io_opt || true
+        sudo mkdir -p block/foreground_io_opt || true
+        sudo chown -R runner:docker block/foreground_io_opt
+        sudo chmod -R 755 block/foreground_io_opt
+        
+        sudo tee block/foreground_io_opt/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS foreground I/O optimization configuration
+        #
+        
+        config OPLUS_FEATURE_FG_IO_OPT
+          bool "OPLUS foreground I/O optimization"
+          default n
+          help
+            Enable foreground I/O optimization feature for OPLUS device.
+            This option provides optimizations for I/O operations
+            to improve foreground application performance.
+        EOF
+        
+        sudo chmod 644 block/foreground_io_opt/Kconfig
+        
         # 显示最终结果
         echo "Final directory structure:"
         ls -la kernel/sched_assist/ || true
         ls -la kernel/locking/klockopt/ || true
+        ls -la block/foreground_io_opt/ || true
       working-directory: ${{ github.workspace }}/kernel_workspace/android-kernel
 
     - name: Build kernel
