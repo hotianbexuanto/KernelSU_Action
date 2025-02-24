@@ -1,3 +1,15 @@
 # 注释掉或删除这一行
 # source "kernel/sched_assist/Kconfig"
-source "kernel/sched_assist/Kconfig" 
+# source "kernel/sched_assist/Kconfig"
+
+menu "OPLUS Scheduler Features"
+
+config OPLUS_FEATURE_SCHED_ASSIST
+	bool "Scheduler Assist Feature"
+	default n
+	help
+	  Enable support for OPLUS scheduler assist features.
+	  This option provides additional scheduling optimizations
+	  for better system performance.
+
+endmenu 
