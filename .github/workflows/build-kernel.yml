@@ -1,4 +1,3 @@
-
 name: Build Kernel
 on:
   workflow_dispatch:
@@ -660,111 +659,232 @@ jobs:
         echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
         ls -la drivers/base/kernelFwUpdate/
         
-        # 处理相机保护传感器目录和Kconfig文件 - 使用简化方法
+        # 处理相机保护传感器目录和Kconfig文件 - 使用符号链接检查方法
         echo "Setting up camera protect virtual sensor..."
         
-        # 使用单独的命令逐步创建目录，并添加适当的错误处理
+        # 定义传感器路径变量
+        SENSORS_BASE_DIR="drivers/misc/mediatek/sensors-1.0"
+        VIRTUAL_SENSOR_DIR="$SENSORS_BASE_DIR/oplus_virtual_sensor"
+        SENSORS_DIR="$VIRTUAL_SENSOR_DIR/sensors"
+        CAMERA_PROTECT_DIR="$SENSORS_DIR/camera_protecthub"
+        FREE_FALL_DIR="$SENSORS_DIR/free_fallhub"
+        VENDOR_BASE_DIR="vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors"
         
-        # 创建基础目录
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0 || echo "基础目录已存在或创建失败"
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || echo "oplus_virtual_sensor 目录已存在或创建失败"
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors || echo "sensors 目录已存在或创建失败"
+        # 定义创建直接目录和文件的函数
+        create_direct_sensor_dirs() {
+          # 创建传感器目录结构
+          sudo mkdir -p "$VIRTUAL_SENSOR_DIR/sensors/camera_protecthub"
+          sudo mkdir -p "$VIRTUAL_SENSOR_DIR/sensors/free_fallhub"
+          
+          # 创建相机保护传感器配置文件
+          cat > "$VIRTUAL_SENSOR_DIR/sensors/camera_protecthub/Kconfig" << 'EOF'
+          # SPDX-License-Identifier: GPL-2.0
+          # OPLUS Camera Protect Virtual Sensor
+          
+          config OPLUS_FEATURE_CAMERA_PROTECT
+            bool "OPLUS camera protect virtual sensor"
+            default n
+            help
+              Enable camera protect virtual sensor for OPLUS device.
+          
+          config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+            bool "OPLUS camera protect report"
+            default n
+            depends on OPLUS_FEATURE_CAMERA_PROTECT
+            help
+              Enable reporting mechanism for the camera protect feature.
+          EOF
+          
+          # 创建自由落体传感器配置文件
+          cat > "$VIRTUAL_SENSOR_DIR/sensors/free_fallhub/Kconfig" << 'EOF'
+          # SPDX-License-Identifier: GPL-2.0
+          # OPLUS Free Fall Virtual Sensor
+          
+          config OPLUS_FEATURE_FREE_FALL
+            bool "OPLUS free fall virtual sensor"
+            default n
+            help
+              Enable free fall virtual sensor for OPLUS device.
+          
+          config OPLUS_FEATURE_FREE_FALL_REPORT
+            bool "OPLUS free fall report"
+            default n
+            depends on OPLUS_FEATURE_FREE_FALL
+            help
+              Enable reporting mechanism for the free fall feature.
+          EOF
+          
+          # 设置文件权限
+          sudo chmod 644 "$VIRTUAL_SENSOR_DIR/sensors/camera_protecthub/Kconfig"
+          sudo chmod 644 "$VIRTUAL_SENSOR_DIR/sensors/free_fallhub/Kconfig"
+          
+          echo "直接在源码树中创建传感器配置文件完成"
+        }
         
-        # 创建子目录
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || echo "camera_protecthub 目录已存在或创建失败"
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub || echo "free_fallhub 目录已存在或创建失败"
+        # 首先检查基础目录是否存在，不存在则创建
+        if [ ! -d "$SENSORS_BASE_DIR" ]; then
+          sudo mkdir -p "$SENSORS_BASE_DIR"
+          echo "创建基础传感器目录：$SENSORS_BASE_DIR"
+        fi
         
-        # 创建 vendor 目录
-        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub || echo "vendor camera_protecthub 目录已存在或创建失败"
-        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub || echo "vendor free_fallhub 目录已存在或创建失败"
+        # 检查oplus_virtual_sensor是否为符号链接
+        if [ -L "$VIRTUAL_SENSOR_DIR" ]; then
+          echo "检测到 $VIRTUAL_SENSOR_DIR 是符号链接"
+          # 获取符号链接的真实目标
+          LINK_TARGET=$(readlink -f "$VIRTUAL_SENSOR_DIR")
+          echo "符号链接目标: $LINK_TARGET"
+          
+          # 检查目标是否存在
+          if [ -d "$LINK_TARGET" ]; then
+            echo "符号链接目标目录存在，将在目标目录创建配置文件"
+            
+            # 在目标目录创建所需的子目录结构
+            sudo mkdir -p "$LINK_TARGET/sensors/camera_protecthub"
+            sudo mkdir -p "$LINK_TARGET/sensors/free_fallhub"
+            
+            # 创建相机保护传感器配置文件
+            cat > "$LINK_TARGET/sensors/camera_protecthub/Kconfig" << 'EOF'
+            # SPDX-License-Identifier: GPL-2.0
+            # OPLUS Camera Protect Virtual Sensor
+            
+            config OPLUS_FEATURE_CAMERA_PROTECT
+              bool "OPLUS camera protect virtual sensor"
+              default n
+              help
+                Enable camera protect virtual sensor for OPLUS device.
+            
+            config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+              bool "OPLUS camera protect report"
+              default n
+              depends on OPLUS_FEATURE_CAMERA_PROTECT
+              help
+                Enable reporting mechanism for the camera protect feature.
+            EOF
+            
+            # 创建自由落体传感器配置文件
+            cat > "$LINK_TARGET/sensors/free_fallhub/Kconfig" << 'EOF'
+            # SPDX-License-Identifier: GPL-2.0
+            # OPLUS Free Fall Virtual Sensor
+            
+            config OPLUS_FEATURE_FREE_FALL
+              bool "OPLUS free fall virtual sensor"
+              default n
+              help
+                Enable free fall virtual sensor for OPLUS device.
+            
+            config OPLUS_FEATURE_FREE_FALL_REPORT
+              bool "OPLUS free fall report"
+              default n
+              depends on OPLUS_FEATURE_FREE_FALL
+              help
+                Enable reporting mechanism for the free fall feature.
+            EOF
+            
+            # 设置文件权限
+            sudo chmod 644 "$LINK_TARGET/sensors/camera_protecthub/Kconfig"
+            sudo chmod 644 "$LINK_TARGET/sensors/free_fallhub/Kconfig"
+            
+            echo "在符号链接目标目录创建配置文件完成"
+          else
+            echo "符号链接目标目录不存在，将创建直接目录结构"
+            create_direct_sensor_dirs
+          fi
+        else
+          echo "$VIRTUAL_SENSOR_DIR 不是符号链接，将创建直接目录结构"
+          create_direct_sensor_dirs
+        fi
         
-        # 设置权限 - 使用 -f 标志忽略不存在的文件或目录
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0 || echo "无法设置 sensors-1.0 目录权限"
-        sudo chmod -R 755 vendor/oplus/sensor/kernel || echo "无法设置 vendor 目录权限"
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0 || echo "无法更改 sensors-1.0 目录所有权"
-        sudo chown -R runner:docker vendor/oplus/sensor/kernel || echo "无法更改 vendor 目录所有权"
+        # 创建vendor目录，确保它无论如何都存在
+        sudo mkdir -p "$VENDOR_BASE_DIR/camera_protecthub"
+        sudo mkdir -p "$VENDOR_BASE_DIR/free_fallhub"
         
-        # 使用 || true 确保即使命令失败也不会中断脚本
+        # 创建vendor目录配置文件
+        cat > "$VENDOR_BASE_DIR/camera_protecthub/Kconfig" << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        # OPLUS Camera Protect Virtual Sensor
         
-        # 创建相机保护传感器配置文件
-        sudo bash -c 'echo "# SPDX-License-Identifier: GPL-2.0" > drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "# OPLUS Camera Protect Virtual Sensor" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "config OPLUS_FEATURE_CAMERA_PROTECT" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  bool \"OPLUS camera protect virtual sensor\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  default n" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  help" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "    Enable camera protect virtual sensor for OPLUS device." >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "config OPLUS_FEATURE_CAMERA_PROTECT_REPORT" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  bool \"OPLUS camera protect report\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  default n" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  depends on OPLUS_FEATURE_CAMERA_PROTECT" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "  help" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
-        sudo bash -c 'echo "    Enable reporting mechanism for the camera protect feature." >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig' || true
+        config OPLUS_FEATURE_CAMERA_PROTECT
+          bool "OPLUS camera protect virtual sensor"
+          default n
+          help
+            Enable camera protect virtual sensor for OPLUS device.
         
-        # 创建自由落体传感器配置文件
-        sudo bash -c 'echo "# SPDX-License-Identifier: GPL-2.0" > drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "# OPLUS Free Fall Virtual Sensor" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "config OPLUS_FEATURE_FREE_FALL" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  bool \"OPLUS free fall virtual sensor\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  default n" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  help" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "    Enable free fall virtual sensor for OPLUS device." >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "config OPLUS_FEATURE_FREE_FALL_REPORT" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  bool \"OPLUS free fall report\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  default n" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  depends on OPLUS_FEATURE_FREE_FALL" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "  help" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
-        sudo bash -c 'echo "    Enable reporting mechanism for the free fall feature." >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig' || true
+        config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+          bool "OPLUS camera protect report"
+          default n
+          depends on OPLUS_FEATURE_CAMERA_PROTECT
+          help
+            Enable reporting mechanism for the camera protect feature.
+        EOF
         
-        # 复制配置文件到vendor目录
-        sudo cp drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/ || echo "无法复制 camera_protecthub Kconfig 文件"
-        sudo cp drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/ || echo "无法复制 free_fallhub Kconfig 文件"
+        cat > "$VENDOR_BASE_DIR/free_fallhub/Kconfig" << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        # OPLUS Free Fall Virtual Sensor
         
-        # 设置权限
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig || echo "无法设置 camera_protecthub Kconfig 权限"
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig || echo "无法设置 free_fallhub Kconfig 权限"
-        sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig || echo "无法设置 vendor camera_protecthub Kconfig 权限"
-        sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig || echo "无法设置 vendor free_fallhub Kconfig 权限"
+        config OPLUS_FEATURE_FREE_FALL
+          bool "OPLUS free fall virtual sensor"
+          default n
+          help
+            Enable free fall virtual sensor for OPLUS device.
         
-        echo "Camera protect and free fall sensor Kconfig files created successfully"
+        config OPLUS_FEATURE_FREE_FALL_REPORT
+          bool "OPLUS free fall report"
+          default n
+          depends on OPLUS_FEATURE_FREE_FALL
+          help
+            Enable reporting mechanism for the free fall feature.
+        EOF
         
-        # 修复主 Kconfig 引用问题
-        echo "修复主 Kconfig 引用问题"
+        # 设置文件权限
+        sudo chmod 644 "$VENDOR_BASE_DIR/camera_protecthub/Kconfig"
+        sudo chmod 644 "$VENDOR_BASE_DIR/free_fallhub/Kconfig"
         
-        # 创建目录
-        mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/
-        
-        # 创建传感器引用文件
-        echo "# Virtual sensor configuration" > drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
-        echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
-        echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
-        chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
+        # 创建引用文件 - 确保目录层次结构正确
+        # 创建sensors的Kconfig
+        if [ ! -f "$SENSORS_DIR/Kconfig" ]; then
+          sudo mkdir -p "$SENSORS_DIR"
+          cat > "$SENSORS_DIR/Kconfig" << 'EOF'
+          # Virtual sensor configuration
+          source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
+          source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig"
+          EOF
+          sudo chmod 644 "$SENSORS_DIR/Kconfig"
+        fi
         
         # 创建oplus_virtual_sensor的Kconfig
-        echo "# Oplus virtual sensor configuration" > drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig
-        echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig
-        chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig
+        if [ ! -f "$VIRTUAL_SENSOR_DIR/Kconfig" ]; then
+          sudo mkdir -p "$VIRTUAL_SENSOR_DIR"
+          cat > "$VIRTUAL_SENSOR_DIR/Kconfig" << 'EOF'
+          # Oplus virtual sensor configuration
+          source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig"
+          EOF
+          sudo chmod 644 "$VIRTUAL_SENSOR_DIR/Kconfig"
+        fi
         
         # 查看主传感器 Kconfig 文件
-        if [ -f drivers/misc/mediatek/sensors-1.0/Kconfig ]; then
+        if [ -f "$SENSORS_BASE_DIR/Kconfig" ]; then
           # 检查是否已包含oplus_virtual_sensor
-          if ! grep -q "oplus_virtual_sensor/Kconfig" drivers/misc/mediatek/sensors-1.0/Kconfig; then
+          if ! grep -q "oplus_virtual_sensor/Kconfig" "$SENSORS_BASE_DIR/Kconfig"; then
             # 添加引用到现有文件
-            echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/Kconfig
+            echo 'source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig"' >> "$SENSORS_BASE_DIR/Kconfig"
           fi
         else
           # 创建新文件
-          echo "# MTK sensors configuration" > drivers/misc/mediatek/sensors-1.0/Kconfig
-          echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/Kconfig
-          chmod 644 drivers/misc/mediatek/sensors-1.0/Kconfig
+          cat > "$SENSORS_BASE_DIR/Kconfig" << 'EOF'
+          # MTK sensors configuration
+          source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig"
+          EOF
+          sudo chmod 644 "$SENSORS_BASE_DIR/Kconfig"
         fi
         
-        # 显示文件
-        echo "修复完成，检查Kconfig文件："
-        ls -la drivers/misc/mediatek/sensors-1.0/
-        cat drivers/misc/mediatek/sensors-1.0/Kconfig
+        echo "传感器配置文件设置完成"
+        # 输出目录列表和Kconfig文件内容
+        echo "传感器目录结构："
+        ls -la "$SENSORS_BASE_DIR"
+        echo "传感器Kconfig内容："
+        if [ -f "$SENSORS_BASE_DIR/Kconfig" ]; then
+          cat "$SENSORS_BASE_DIR/Kconfig"
+        fi
 
     - name: Build kernel
       run: |
