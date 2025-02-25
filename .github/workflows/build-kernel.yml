@@ -1087,6 +1087,60 @@ jobs:
           fi
         done
 
+        # 处理音频编解码器的Kconfig
+        echo "Setting up audio codec configuration..."
+        sudo rm -rf sound/soc/codecs/audio || true
+        sudo mkdir -p sound/soc/codecs/audio || true
+        sudo chown -R runner:docker sound/soc/codecs/audio
+        sudo chmod -R 755 sound/soc/codecs/audio
+        
+        # 创建音频编解码器Kconfig文件
+        sudo tee sound/soc/codecs/audio/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS audio codec configuration
+        #
+        
+        config SND_SOC_OPLUS_CODEC_AUDIO
+          bool "OPLUS Audio codec support"
+          default n
+          help
+            Enable OPLUS audio codec support.
+            This enables audio codec drivers specific to OPLUS devices.
+            
+        config SND_SOC_OPLUS_PA_MANAGER
+          bool "OPLUS audio PA manager"
+          default n
+          depends on SND_SOC_OPLUS_CODEC_AUDIO
+          help
+            Enable OPLUS audio PA manager.
+            This enables power amplifier management
+            for OPLUS audio subsystem.
+            
+        config SND_SOC_TFA98XX_OPLUS
+          bool "NXP TFA98XX codec support for OPLUS"
+          default n
+          depends on SND_SOC_OPLUS_CODEC_AUDIO
+          help
+            Enable NXP TFA98XX codec support customized for OPLUS devices.
+            This enables the TFA98XX codec driver with
+            OPLUS-specific modifications.
+            
+        config SND_SOC_AW87339_OPLUS
+          bool "AWINIC AW87339 codec support for OPLUS"
+          default n
+          depends on SND_SOC_OPLUS_CODEC_AUDIO
+          help
+            Enable AWINIC AW87339 codec support customized for OPLUS devices.
+            This enables the AW87339 codec driver with
+            OPLUS-specific modifications.
+        EOF
+        
+        sudo chmod 644 sound/soc/codecs/audio/Kconfig
+        
+        # 将 sound/soc/codecs/audio/Kconfig 添加到自动处理列表中
+        OPLUS_COMPONENTS+=("sound/soc/codecs/audio")
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
