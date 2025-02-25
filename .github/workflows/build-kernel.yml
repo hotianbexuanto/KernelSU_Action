@@ -663,12 +663,39 @@ jobs:
         echo "Setting up camera protect virtual sensor..."
         SENSOR_DIR="drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor"
         
+        # 首先处理基础目录
+        if [ ! -d "drivers/misc/mediatek/sensors-1.0" ]; then
+            echo "基础目录不存在，创建完整路径"
+            sudo mkdir -p drivers/misc/mediatek/sensors-1.0 || true
+            sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0
+            sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0
+        fi
+        
+        # 检查oplus_virtual_sensor是否存在，如果是符号链接则删除
+        if [ -L "$SENSOR_DIR" ]; then
+            echo "检测到oplus_virtual_sensor是悬空符号链接，删除它"
+            sudo rm -f "$SENSOR_DIR"
+        fi
+        
+        # 检查目录是否存在，如果存在则删除
+        if [ -d "$SENSOR_DIR" ]; then
+            echo "已存在目录，移除它"
+            sudo rm -rf "$SENSOR_DIR"
+        fi
+        
         # 定义创建直接目录的函数
         create_direct_sensor_dir() {
-            echo "直接在源码树中创建相机保护传感器配置..."
-            sudo mkdir -p "$SENSOR_DIR/sensors/camera_protecthub" || true
+            echo "在源码树中创建相机保护传感器配置..."
+            sudo mkdir -p "$SENSOR_DIR"
+            sudo mkdir -p "$SENSOR_DIR/sensors"
+            sudo mkdir -p "$SENSOR_DIR/sensors/camera_protecthub"
             sudo chown -R runner:docker "$SENSOR_DIR"
             sudo chmod -R 755 "$SENSOR_DIR"
+            
+            echo "目录创建后的结构:"
+            ls -la "$(dirname "$SENSOR_DIR")" || echo "无法列出父目录内容"
+            ls -la "$SENSOR_DIR" || echo "无法列出目录内容"
+            ls -la "$SENSOR_DIR/sensors" || echo "无法列出sensors目录内容"
             
             sudo tee "$SENSOR_DIR/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
@@ -699,72 +726,8 @@ jobs:
             ls -la "$SENSOR_DIR/sensors/camera_protecthub/" || echo "无法列出camera_protecthub目录内容"
         }
         
-        # 检查基本目录是否存在
-        if [ ! -d "drivers/misc/mediatek/sensors-1.0" ]; then
-            echo "基础目录不存在，创建完整路径"
-            sudo mkdir -p drivers/misc/mediatek/sensors-1.0 || true
-            sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0
-            sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0
-        fi
-        
-        # 检查oplus_virtual_sensor是否为符号链接
-        if [ -L "$SENSOR_DIR" ]; then
-            echo "oplus_virtual_sensor是符号链接，尝试获取目标路径"
-            LINK_TARGET=$(readlink -f "$SENSOR_DIR" 2>/dev/null || echo "")
-            echo "符号链接目标: $LINK_TARGET"
-            
-            if [ -n "$LINK_TARGET" ] && [ -d "$LINK_TARGET" ]; then
-                echo "正在实际目标目录创建相机保护传感器配置..."
-                # 在实际目录创建所需的子目录
-                sudo mkdir -p "$LINK_TARGET/sensors" || true
-                sudo mkdir -p "$LINK_TARGET/sensors/camera_protecthub" || true
-                
-                # 设置正确的权限
-                sudo chown -R runner:docker "$LINK_TARGET"
-                sudo chmod -R 755 "$LINK_TARGET"
-                
-                # 检查目录是否创建成功
-                echo "检查创建的目录结构:"
-                ls -la "$LINK_TARGET" || echo "无法列出目标目录内容"
-                ls -la "$LINK_TARGET/sensors" || echo "sensors目录不存在或无法访问"
-                
-                # 创建Kconfig文件
-                sudo tee "$LINK_TARGET/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS Camera Protect Virtual Sensor
-        #
-        
-        config OPLUS_FEATURE_CAMERA_PROTECT
-          bool "OPLUS camera protect virtual sensor"
-          default n
-          help
-            Enable camera protect virtual sensor for OPLUS device.
-            This option provides mechanisms to detect and protect
-            the camera from physical damage or unauthorized access.
-            
-        config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
-          bool "OPLUS camera protect report"
-          default n
-          depends on OPLUS_FEATURE_CAMERA_PROTECT
-          help
-            Enable reporting mechanism for the camera protect feature.
-            This option allows the system to report camera protection
-            status and potential security events.
-        EOF
-                
-                sudo chmod 644 "$LINK_TARGET/sensors/camera_protecthub/Kconfig"
-                echo "Camera protect virtual sensor Kconfig created at: $LINK_TARGET/sensors/camera_protecthub/Kconfig"
-                ls -la "$LINK_TARGET/sensors/camera_protecthub/" || echo "无法列出camera_protecthub目录内容"
-            else
-                echo "符号链接目标不存在或不可访问，创建本地目录"
-                create_direct_sensor_dir
-            fi
-        else
-            # 如果不是符号链接或符号链接不存在，直接在源码树中创建
-            echo "oplus_virtual_sensor不是符号链接或不存在，直接创建目录"
-            create_direct_sensor_dir
-        fi
+        # 直接创建目录
+        create_direct_sensor_dir
         
         # 备选方案：确保vendor也有相应的配置文件
         echo "确保vendor目录中也有相应的配置文件"
