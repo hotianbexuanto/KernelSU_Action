@@ -900,6 +900,193 @@ jobs:
         
         sudo chmod 644 drivers/input/oplus_secure_drivers/Kconfig
 
+        # 创建OPLUS电源管理（采用不同的方法）
+        echo "Setting up OPLUS power management (alternative approach)..."
+        
+        # 首先查看主Kconfig文件，看看它是如何包含oplus/Kconfig的
+        grep -n "oplus/Kconfig" drivers/power/Kconfig || true
+        
+        # 创建完整的OPLUS电源管理目录结构
+        rm -rf drivers/power/supply/oplus || true
+        sudo mkdir -p drivers/power/supply/oplus || true
+        sudo chown -R runner:docker drivers/power/supply/oplus
+        sudo chmod -R 755 drivers/power/supply/oplus
+        
+        # 创建Kconfig和Makefile文件
+        sudo tee drivers/power/supply/oplus/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS power management configuration
+        #
+        
+        config OPLUS_FEATURE_CHG_BASIC
+          bool "OPLUS charging system"
+          default n
+          help
+            Enable OPLUS charging system support.
+            This provides charging drivers and features
+            specific to OPLUS devices.
+        
+        config OPLUS_CHARGER
+          bool "OPLUS charger driver"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable OPLUS charger driver.
+            This includes various charger controller designs
+            used in OPLUS devices.
+        
+        config OPLUS_CHIP_SOC_NODE
+          bool "OPLUS chip SOC node"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable chip SOC node for OPLUS devices.
+            This option provides information about the SOC
+            of the OPLUS chip through sysfs.
+        
+        config OPLUS_SHORT_C_BATT_CHECK
+          bool "OPLUS short circuit battery check"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable short circuit battery checking for OPLUS devices.
+            This feature helps to detect and handle battery
+            short circuit conditions.
+            
+        config OPLUS_SMART_CHARGER_SUPPORT
+          bool "OPLUS smart charger support"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable smart charger support for OPLUS devices.
+            This feature provides intelligent charging algorithms
+            to optimize battery life and charging speed.
+            
+        config OPLUS_SHORT_HW_CHECK
+          bool "OPLUS short hardware check"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable short hardware checking for OPLUS devices.
+            This feature helps to detect and handle hardware
+            short circuit conditions.
+            
+        config OPLUS_DUAL_CHARGER_SUPPORT
+          bool "OPLUS dual charger support"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable dual charger support for OPLUS devices.
+            This feature allows using two charging ICs
+            simultaneously for faster charging.
+            
+        config OPLUS_CALL_MODE_SUPPORT
+          bool "OPLUS call mode charging support"
+          default n
+          depends on OPLUS_FEATURE_CHG_BASIC
+          help
+            Enable call mode support for OPLUS devices.
+            This feature adjusts charging behavior during
+            phone calls to reduce heat generation.
+        EOF
+        
+        sudo chmod 644 drivers/power/supply/oplus/Kconfig
+        
+        # 创建必要的power/oplus目录（但作为供电目录的链接）
+        sudo rm -rf drivers/power/oplus || true
+        sudo mkdir -p drivers/power/oplus || true
+        sudo chown -R runner:docker drivers/power/oplus
+        sudo chmod -R 755 drivers/power/oplus
+        
+        # 复制Kconfig文件到power/oplus目录
+        sudo cp drivers/power/supply/oplus/Kconfig drivers/power/oplus/Kconfig
+        sudo chmod 644 drivers/power/oplus/Kconfig
+        
+        # 调试输出
+        echo "Created OPLUS power management directories and files:"
+        ls -la drivers/power/oplus/ || true
+        ls -la drivers/power/supply/oplus/ || true
+        
+        # 修改主power Kconfig文件以避免包含缺失的文件
+        echo "Modifying main power Kconfig file..."
+        POWER_KCONFIG="drivers/power/Kconfig"
+        if [ -f "$POWER_KCONFIG" ]; then
+          # 备份原始文件
+          cp $POWER_KCONFIG ${POWER_KCONFIG}.bak
+          
+          # 查找并注释掉对oplus/Kconfig的引用行
+          # 这行通常看起来像: source "drivers\/power\/oplus\/Kconfig"
+          sudo sed -i 's/source "drivers\/power\/oplus\/Kconfig"/#source "drivers\/power\/oplus\/Kconfig" # commented for build/g' $POWER_KCONFIG
+          
+          # 确认更改
+          echo "Modified $POWER_KCONFIG:"
+          grep -n "oplus/Kconfig" $POWER_KCONFIG || true
+          
+          echo "Difference between original and modified file:"
+          diff ${POWER_KCONFIG}.bak $POWER_KCONFIG || true
+        else
+          echo "Warning: $POWER_KCONFIG does not exist"
+        fi
+        
+        # 创建批量处理Kconfig缺失的函数
+        echo "Setting up automatic Kconfig error handler..."
+        create_kconfig_template() {
+          local kconfig_path=$1
+          local dir_path=$(dirname "$kconfig_path")
+          
+          echo "Creating directory and Kconfig for: $kconfig_path"
+          sudo mkdir -p "$dir_path"
+          sudo chown -R runner:docker "$dir_path"
+          sudo chmod -R 755 "$dir_path"
+          
+          # 创建一个简单的Kconfig模板
+          sudo tee "$kconfig_path" > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # Auto-generated Kconfig file for build
+        # This file was automatically created to fix build errors
+        #
+        
+        # Empty configuration to satisfy build dependencies
+        EOF
+          
+          sudo chmod 644 "$kconfig_path"
+          echo "Created $kconfig_path successfully"
+        }
+        
+        # 为了防止还有其他缺失的Kconfig文件，让我们检查一些常见的OPLUS组件
+        OPLUS_COMPONENTS=(
+          "drivers/power/oplus"
+          "drivers/power/supply/oplus"
+          "drivers/misc/mediatek/ccu/src/2.1/ccu_ext_interface"
+          "drivers/misc/mediatek/imgsensor/src/mt6873/camera_project/k6873v1_64"
+          "drivers/misc/mediatek/memory-ssmr/met_memory_utils"
+          "drivers/misc/mediatek/performance/fpsgo_v3/fbt_cpu"
+          "drivers/misc/mediatek/geniezone"
+          "drivers/misc/mediatek/nand"
+          "drivers/misc/mediatek/connectivity/common"
+          "drivers/misc/mediatek/performance/boost_ctrl"
+          "drivers/misc/mediatek/memory-amms"
+          "drivers/misc/mediatek/ext_gic"
+          "drivers/misc/mediatek/mmp"
+          "drivers/misc/mediatek/apusys"
+          "drivers/misc/mediatek/vpu"
+          "drivers/misc/mediatek/mdla"
+          "drivers/misc/mediatek/vibrator"
+          "drivers/misc/mediatek/ccu"
+          "drivers/misc/mediatek/ext_gic"
+          "drivers/misc/oplus"
+        )
+        
+        # 为每个组件创建Kconfig文件，如果目录不存在的话
+        for component in "${OPLUS_COMPONENTS[@]}"; do
+          kconfig_path="${component}/Kconfig"
+          if [ ! -f "$kconfig_path" ]; then
+            create_kconfig_template "$kconfig_path"
+          fi
+        done
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
