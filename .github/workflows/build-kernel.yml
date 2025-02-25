@@ -673,7 +673,7 @@ jobs:
         
         # 检查oplus_virtual_sensor是否存在，如果是符号链接则删除
         if [ -L "$SENSOR_DIR" ]; then
-            echo "检测到oplus_virtual_sensor是悬空符号链接，删除它"
+            echo "检测到oplus_virtual_sensor是符号链接，删除它"
             sudo rm -f "$SENSOR_DIR"
         fi
         
@@ -683,117 +683,108 @@ jobs:
             sudo rm -rf "$SENSOR_DIR"
         fi
         
-        # 定义创建直接目录的函数
-        create_direct_sensor_dir() {
-            echo "在源码树中创建相机保护传感器配置..."
-            sudo mkdir -p "$SENSOR_DIR"
-            sudo mkdir -p "$SENSOR_DIR/sensors"
-            sudo mkdir -p "$SENSOR_DIR/sensors/camera_protecthub"
-            sudo mkdir -p "$SENSOR_DIR/sensors/free_fallhub"
-            sudo chown -R runner:docker "$SENSOR_DIR"
-            sudo chmod -R 755 "$SENSOR_DIR"
-            
-            echo "目录创建后的结构:"
-            ls -la "$(dirname "$SENSOR_DIR")" || echo "无法列出父目录内容"
-            ls -la "$SENSOR_DIR" || echo "无法列出目录内容"
-            ls -la "$SENSOR_DIR/sensors" || echo "无法列出sensors目录内容"
-            
-            sudo tee "$SENSOR_DIR/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS Camera Protect Virtual Sensor
-        #
+        # 创建传感器目录和配置文件
+        echo "在源码树中创建传感器配置..."
+        sudo mkdir -p "$SENSOR_DIR/sensors/camera_protecthub"
+        sudo mkdir -p "$SENSOR_DIR/sensors/free_fallhub"
+        sudo chown -R runner:docker "$SENSOR_DIR"
+        sudo chmod -R 755 "$SENSOR_DIR"
         
-        config OPLUS_FEATURE_CAMERA_PROTECT
-          bool "OPLUS camera protect virtual sensor"
-          default n
-          help
-            Enable camera protect virtual sensor for OPLUS device.
-            This option provides mechanisms to detect and protect
-            the camera from physical damage or unauthorized access.
-            
-        config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
-          bool "OPLUS camera protect report"
-          default n
-          depends on OPLUS_FEATURE_CAMERA_PROTECT
-          help
-            Enable reporting mechanism for the camera protect feature.
-            This option allows the system to report camera protection
-            status and potential security events.
-        EOF
-            
-            sudo chmod 644 "$SENSOR_DIR/sensors/camera_protecthub/Kconfig"
-            echo "Camera protect virtual sensor Kconfig created at: $SENSOR_DIR/sensors/camera_protecthub/Kconfig"
-            ls -la "$SENSOR_DIR/sensors/camera_protecthub/" || echo "无法列出camera_protecthub目录内容"
-            
-            # 创建free_fallhub配置
-            echo "创建free_fallhub配置..."
-            sudo mkdir -p "$SENSOR_DIR/sensors/free_fallhub" || true
-            sudo chown -R runner:docker "$SENSOR_DIR/sensors/free_fallhub" || true
-            sudo chmod -R 755 "$SENSOR_DIR/sensors/free_fallhub" || true
-            
-            sudo tee "$SENSOR_DIR/sensors/free_fallhub/Kconfig" > /dev/null << 'EOF'
-            # SPDX-License-Identifier: GPL-2.0
-            #
-            # OPLUS Free Fall Virtual Sensor
-            #
-            
-            config OPLUS_FEATURE_FREE_FALL
-              bool "OPLUS free fall virtual sensor"
-              default n
-              help
-                Enable free fall virtual sensor for OPLUS device.
-                This option provides mechanisms to detect free fall
-                of the device and take protective actions.
-                
-            config OPLUS_FEATURE_FREE_FALL_REPORT
-              bool "OPLUS free fall report"
-              default n
-              depends on OPLUS_FEATURE_FREE_FALL
-              help
-                Enable reporting mechanism for the free fall feature.
-                This option allows the system to report free fall
-                detection events for analysis.
-            EOF
-            
-            sudo chmod 644 "$SENSOR_DIR/sensors/free_fallhub/Kconfig"
-            echo "Free fall virtual sensor Kconfig created at: $SENSOR_DIR/sensors/free_fallhub/Kconfig"
-            ls -la "$SENSOR_DIR/sensors/free_fallhub/" || echo "无法列出free_fallhub目录内容"
-        }
+        echo "目录创建后的结构:"
+        ls -la "$(dirname "$SENSOR_DIR")" || echo "无法列出父目录内容"
+        ls -la "$SENSOR_DIR" || echo "无法列出目录内容"
+        ls -la "$SENSOR_DIR/sensors" || echo "无法列出sensors目录内容"
         
-        # 直接创建目录
-        create_direct_sensor_dir
+        # 创建相机保护传感器的Kconfig文件
+        echo "创建相机保护传感器Kconfig文件..."
+        sudo tee "$SENSOR_DIR/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOF'
+# SPDX-License-Identifier: GPL-2.0
+#
+# OPLUS Camera Protect Virtual Sensor
+#
+
+config OPLUS_FEATURE_CAMERA_PROTECT
+  bool "OPLUS camera protect virtual sensor"
+  default n
+  help
+    Enable camera protect virtual sensor for OPLUS device.
+    This option provides mechanisms to detect and protect
+    the camera from physical damage or unauthorized access.
+    
+config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+  bool "OPLUS camera protect report"
+  default n
+  depends on OPLUS_FEATURE_CAMERA_PROTECT
+  help
+    Enable reporting mechanism for the camera protect feature.
+    This option allows the system to report camera protection
+    status and potential security events.
+EOF
+        
+        sudo chmod 644 "$SENSOR_DIR/sensors/camera_protecthub/Kconfig"
+        echo "Camera protect virtual sensor Kconfig created at: $SENSOR_DIR/sensors/camera_protecthub/Kconfig"
+        ls -la "$SENSOR_DIR/sensors/camera_protecthub/" || echo "无法列出camera_protecthub目录内容"
+        
+        # 创建free_fallhub配置
+        echo "创建free_fallhub配置..."
+        sudo tee "$SENSOR_DIR/sensors/free_fallhub/Kconfig" > /dev/null << 'EOF'
+# SPDX-License-Identifier: GPL-2.0
+#
+# OPLUS Free Fall Virtual Sensor
+#
+
+config OPLUS_FEATURE_FREE_FALL
+  bool "OPLUS free fall virtual sensor"
+  default n
+  help
+    Enable free fall virtual sensor for OPLUS device.
+    This option provides mechanisms to detect free fall
+    of the device and take protective actions.
+    
+config OPLUS_FEATURE_FREE_FALL_REPORT
+  bool "OPLUS free fall report"
+  default n
+  depends on OPLUS_FEATURE_FREE_FALL
+  help
+    Enable reporting mechanism for the free fall feature.
+    This option allows the system to report free fall
+    detection events for analysis.
+EOF
+        
+        sudo chmod 644 "$SENSOR_DIR/sensors/free_fallhub/Kconfig"
+        echo "Free fall virtual sensor Kconfig created at: $SENSOR_DIR/sensors/free_fallhub/Kconfig"
+        ls -la "$SENSOR_DIR/sensors/free_fallhub/" || echo "无法列出free_fallhub目录内容"
         
         # 备选方案：确保vendor也有相应的配置文件
         echo "确保vendor目录中也有相应的配置文件"
-        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub || true
-        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub || true
+        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub
+        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub
         sudo chown -R runner:docker vendor/oplus/sensor/kernel/oplus_virtual_sensor || true
         sudo chmod -R 755 vendor/oplus/sensor/kernel/oplus_virtual_sensor || true
         
         sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS Camera Protect Virtual Sensor
-        #
-        
-        config OPLUS_FEATURE_CAMERA_PROTECT
-          bool "OPLUS camera protect virtual sensor"
-          default n
-          help
-            Enable camera protect virtual sensor for OPLUS device.
-            This option provides mechanisms to detect and protect
-            the camera from physical damage or unauthorized access.
-            
-        config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
-          bool "OPLUS camera protect report"
-          default n
-          depends on OPLUS_FEATURE_CAMERA_PROTECT
-          help
-            Enable reporting mechanism for the camera protect feature.
-            This option allows the system to report camera protection
-            status and potential security events.
-        EOF
+# SPDX-License-Identifier: GPL-2.0
+#
+# OPLUS Camera Protect Virtual Sensor
+#
+
+config OPLUS_FEATURE_CAMERA_PROTECT
+  bool "OPLUS camera protect virtual sensor"
+  default n
+  help
+    Enable camera protect virtual sensor for OPLUS device.
+    This option provides mechanisms to detect and protect
+    the camera from physical damage or unauthorized access.
+    
+config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+  bool "OPLUS camera protect report"
+  default n
+  depends on OPLUS_FEATURE_CAMERA_PROTECT
+  help
+    Enable reporting mechanism for the camera protect feature.
+    This option allows the system to report camera protection
+    status and potential security events.
+EOF
         
         sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
         echo "Camera protect virtual sensor Kconfig created at: vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
@@ -802,28 +793,28 @@ jobs:
         # 在vendor目录创建free_fallhub配置
         echo "在vendor目录创建free_fallhub配置..."
         sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS Free Fall Virtual Sensor
-        #
-        
-        config OPLUS_FEATURE_FREE_FALL
-          bool "OPLUS free fall virtual sensor"
-          default n
-          help
-            Enable free fall virtual sensor for OPLUS device.
-            This option provides mechanisms to detect free fall
-            of the device and take protective actions.
-            
-        config OPLUS_FEATURE_FREE_FALL_REPORT
-          bool "OPLUS free fall report"
-          default n
-          depends on OPLUS_FEATURE_FREE_FALL
-          help
-            Enable reporting mechanism for the free fall feature.
-            This option allows the system to report free fall
-            detection events for analysis.
-        EOF
+# SPDX-License-Identifier: GPL-2.0
+#
+# OPLUS Free Fall Virtual Sensor
+#
+
+config OPLUS_FEATURE_FREE_FALL
+  bool "OPLUS free fall virtual sensor"
+  default n
+  help
+    Enable free fall virtual sensor for OPLUS device.
+    This option provides mechanisms to detect free fall
+    of the device and take protective actions.
+    
+config OPLUS_FEATURE_FREE_FALL_REPORT
+  bool "OPLUS free fall report"
+  default n
+  depends on OPLUS_FEATURE_FREE_FALL
+  help
+    Enable reporting mechanism for the free fall feature.
+    This option allows the system to report free fall
+    detection events for analysis.
+EOF
         
         sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig
         echo "Free fall virtual sensor Kconfig created at: vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig"
