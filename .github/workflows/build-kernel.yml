@@ -615,6 +615,49 @@ jobs:
         sudo chmod 644 net/oplus_modules/Kconfig
         echo "Net oplus_modules Kconfig created at: net/oplus_modules/Kconfig"
         ls -la net/oplus_modules/
+        
+        # 创建 drivers/base/kernelFwUpdate 目录和 Kconfig 文件
+        echo "Setting up drivers/base/kernelFwUpdate..."
+        sudo rm -rf drivers/base/kernelFwUpdate || true
+        sudo mkdir -p drivers/base/kernelFwUpdate || true
+        sudo chown -R runner:docker drivers/base/kernelFwUpdate
+        sudo chmod -R 755 drivers/base/kernelFwUpdate
+        
+        sudo tee drivers/base/kernelFwUpdate/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # Kernel Firmware Update configuration
+        #
+        
+        config OPLUS_FEATURE_KERNEL_FW_UPDATE
+          bool "OPLUS kernel firmware update"
+          default n
+          help
+            Enable kernel firmware update support for OPLUS device.
+            This option provides a mechanism to update device firmware
+            through the kernel.
+            
+        config OPLUS_FEATURE_MODEM_FW_UPDATE
+          bool "OPLUS modem firmware update"
+          default n
+          depends on OPLUS_FEATURE_KERNEL_FW_UPDATE
+          help
+            Enable modem firmware update support for OPLUS device.
+            This option provides a mechanism to update modem firmware.
+            
+        config OPLUS_FEATURE_SECURE_FW_UPDATE
+          bool "OPLUS secure firmware update"
+          default n
+          depends on OPLUS_FEATURE_KERNEL_FW_UPDATE
+          help
+            Enable secure firmware update support for OPLUS device.
+            This option provides secure update mechanism with
+            signature verification for firmware updates.
+        EOF
+        
+        sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
+        echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
+        ls -la drivers/base/kernelFwUpdate/
 
     - name: Build kernel
       run: |
