@@ -1,3 +1,4 @@
+
 name: Build Kernel
 on:
   workflow_dispatch:
@@ -728,6 +729,42 @@ jobs:
         sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig || echo "无法设置 vendor free_fallhub Kconfig 权限"
         
         echo "Camera protect and free fall sensor Kconfig files created successfully"
+        
+        # 修复主 Kconfig 引用问题
+        echo "修复主 Kconfig 引用问题"
+        
+        # 创建目录
+        mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/
+        
+        # 创建传感器引用文件
+        echo "# Virtual sensor configuration" > drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
+        echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
+        echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
+        chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig
+        
+        # 创建oplus_virtual_sensor的Kconfig
+        echo "# Oplus virtual sensor configuration" > drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig
+        echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig
+        chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig
+        
+        # 查看主传感器 Kconfig 文件
+        if [ -f drivers/misc/mediatek/sensors-1.0/Kconfig ]; then
+          # 检查是否已包含oplus_virtual_sensor
+          if ! grep -q "oplus_virtual_sensor/Kconfig" drivers/misc/mediatek/sensors-1.0/Kconfig; then
+            # 添加引用到现有文件
+            echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/Kconfig
+          fi
+        else
+          # 创建新文件
+          echo "# MTK sensors configuration" > drivers/misc/mediatek/sensors-1.0/Kconfig
+          echo "source \"drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig\"" >> drivers/misc/mediatek/sensors-1.0/Kconfig
+          chmod 644 drivers/misc/mediatek/sensors-1.0/Kconfig
+        fi
+        
+        # 显示文件
+        echo "修复完成，检查Kconfig文件："
+        ls -la drivers/misc/mediatek/sensors-1.0/
+        cat drivers/misc/mediatek/sensors-1.0/Kconfig
 
     - name: Build kernel
       run: |
