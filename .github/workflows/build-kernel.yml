@@ -658,6 +658,41 @@ jobs:
         sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
         echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
         ls -la drivers/base/kernelFwUpdate/
+        
+        # 创建相机保护传感器目录和Kconfig文件
+        echo "Setting up camera protect virtual sensor..."
+        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
+        
+        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS Camera Protect Virtual Sensor
+        #
+        
+        config OPLUS_FEATURE_CAMERA_PROTECT
+          bool "OPLUS camera protect virtual sensor"
+          default n
+          help
+            Enable camera protect virtual sensor for OPLUS device.
+            This option provides mechanisms to detect and protect
+            the camera from physical damage or unauthorized access.
+            
+        config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+          bool "OPLUS camera protect report"
+          default n
+          depends on OPLUS_FEATURE_CAMERA_PROTECT
+          help
+            Enable reporting mechanism for the camera protect feature.
+            This option allows the system to report camera protection
+            status and potential security events.
+        EOF
+        
+        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
+        echo "Camera protect virtual sensor Kconfig created at: drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
+        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/
 
     - name: Build kernel
       run: |
