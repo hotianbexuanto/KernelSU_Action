@@ -1141,6 +1141,66 @@ jobs:
         # 将 sound/soc/codecs/audio/Kconfig 添加到自动处理列表中
         OPLUS_COMPONENTS+=("sound/soc/codecs/audio")
 
+        # 创建 oplus lowmem_dbg 目录和 Kconfig
+        echo "Setting up OPLUS lowmem_dbg..."
+        sudo rm -rf drivers/soc/oplus/lowmem_dbg || true
+        sudo mkdir -p drivers/soc/oplus/lowmem_dbg || true
+        sudo chown -R runner:docker drivers/soc/oplus/lowmem_dbg
+        sudo chmod -R 755 drivers/soc/oplus/lowmem_dbg
+        
+        # 创建 Kconfig 文件
+        sudo tee drivers/soc/oplus/lowmem_dbg/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS low memory debug configuration
+        #
+        
+        config OPLUS_FEATURE_LOWMEM_DBG
+          bool "OPLUS low memory debug support"
+          default n
+          help
+            Enable OPLUS low memory debug support.
+            This option provides debugging mechanisms for 
+            low memory situations on OPLUS devices.
+            
+        config OPLUS_FEATURE_LAST_KMSG
+          bool "OPLUS last kernel message"
+          default n
+          depends on OPLUS_FEATURE_LOWMEM_DBG
+          help
+            Enable OPLUS last kernel message feature.
+            This preserves the last kernel messages for 
+            debugging after system crashes.
+        
+        config OPLUS_FEATURE_EMMC_DRIVER
+          bool "OPLUS EMMC driver special for lowmem"
+          default n
+          depends on OPLUS_FEATURE_LOWMEM_DBG
+          help
+            Enable OPLUS EMMC driver special features
+            for low memory conditions.
+        EOF
+        
+        sudo chmod 644 drivers/soc/oplus/lowmem_dbg/Kconfig
+        
+        # 创建主目录 Kconfig 以避免其他错误
+        if [ ! -f drivers/soc/oplus/Kconfig ]; then
+          sudo mkdir -p drivers/soc/oplus || true
+          sudo chown -R runner:docker drivers/soc/oplus
+          sudo chmod -R 755 drivers/soc/oplus
+          
+          sudo tee drivers/soc/oplus/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS SoC drivers configuration
+        #
+        
+        source "drivers/soc/oplus/lowmem_dbg/Kconfig"
+        EOF
+          
+          sudo chmod 644 drivers/soc/oplus/Kconfig
+        fi
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
