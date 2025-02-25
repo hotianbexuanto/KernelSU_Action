@@ -837,6 +837,69 @@ jobs:
         
         sudo chmod 644 drivers/input/oplus_fp_drivers/Kconfig
 
+        # 创建 OPLUS 安全驱动目录和配置
+        echo "Setting up OPLUS secure drivers..."
+        sudo rm -rf drivers/input/oplus_secure_drivers || true
+        sudo mkdir -p drivers/input/oplus_secure_drivers || true
+        
+        # 设置权限
+        sudo chown -R runner:docker drivers/input/oplus_secure_drivers
+        sudo chmod -R 755 drivers/input/oplus_secure_drivers
+        
+        # 创建 Kconfig 文件
+        sudo tee drivers/input/oplus_secure_drivers/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS secure drivers configuration
+        #
+        
+        config OPLUS_SECURE_COMMON
+          bool "OPLUS secure common driver"
+          default n
+          help
+            Enable OPLUS secure common driver support.
+            This provides common security functions
+            for OPLUS devices.
+            
+        config OPLUS_SECURE_QCOM
+          bool "OPLUS secure driver for Qualcomm platform"
+          default n
+          depends on OPLUS_SECURE_COMMON
+          help
+            Enable secure driver for Qualcomm platform.
+            This provides security features specific
+            to OPLUS devices with Qualcomm chipsets.
+            
+        config OPLUS_SECURE_MTK
+          bool "OPLUS secure driver for MediaTek platform"
+          default n
+          depends on OPLUS_SECURE_COMMON
+          help
+            Enable secure driver for MediaTek platform.
+            This provides security features specific
+            to OPLUS devices with MediaTek chipsets.
+            
+        config OPLUS_SECURE_SECBOOT_STATUS
+          bool "OPLUS secure boot status check"
+          default n
+          depends on OPLUS_SECURE_COMMON
+          help
+            Enable secure boot status checking.
+            This provides secure boot verification and
+            status reporting for OPLUS devices.
+            
+        config OPLUS_SECURE_FG_MEMMAP_WRITE
+          bool "OPLUS secure fuel gauge memory map write"
+          default n
+          depends on OPLUS_SECURE_COMMON
+          help
+            Enable secure fuel gauge memory map write.
+            This provides protection for fuel gauge
+            memory map writing operations.
+        EOF
+        
+        sudo chmod 644 drivers/input/oplus_secure_drivers/Kconfig
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
