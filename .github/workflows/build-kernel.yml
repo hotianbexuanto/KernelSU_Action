@@ -394,6 +394,59 @@ jobs:
         
         sudo chmod 644 mm/multi_kswapd/Kconfig
         
+        # 创建 mm/healthinfo 目录和 Kconfig 文件
+        echo "Setting up mm/healthinfo..."
+        sudo rm -rf mm/healthinfo || true
+        sudo mkdir -p mm/healthinfo || true
+        sudo chown -R runner:docker mm/healthinfo
+        sudo chmod -R 755 mm/healthinfo
+        
+        sudo tee mm/healthinfo/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS healthinfo MM configuration
+        #
+        
+        config OPLUS_HEALTHINFO
+          bool "OPLUS healthinfo memory management"
+          default n
+          help
+            Enable healthinfo memory management for OPLUS device.
+            This option provides memory health monitoring and
+            diagnostic features for the mm subsystem.
+            
+        config OPLUS_MEM_MONITOR
+          bool "OPLUS memory monitor"
+          default n
+          depends on OPLUS_HEALTHINFO
+          help
+            Enable memory monitoring for OPLUS device.
+            This tracks detailed memory usage and
+            provides memory allocation statistics.
+            
+        config OPLUS_MEMINFO_MULTI_MEMCG
+          bool "OPLUS multi memcg support"
+          default n
+          depends on OPLUS_HEALTHINFO
+          help
+            Enable multiple memory cgroup support.
+            This provides per-application memory usage
+            tracking and control.
+            
+        config OPLUS_ALLOC_LARGE_MEMORY_MONITOR
+          bool "OPLUS large memory allocation monitor"
+          default n
+          depends on OPLUS_HEALTHINFO
+          help
+            Enable large memory allocation monitoring.
+            This tracks large memory allocations to
+            diagnose memory issues and fragmentation.
+        EOF
+        
+        sudo chmod 644 mm/healthinfo/Kconfig
+        echo "MM healthinfo Kconfig created at: mm/healthinfo/Kconfig"
+        ls -la mm/healthinfo/
+        
         # 创建 healthinfo 目录和 Kconfig
         echo "Setting up OPLUS healthinfo..."
         sudo rm -rf drivers/soc/oplus/healthinfo || true
