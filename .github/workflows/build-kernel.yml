@@ -659,12 +659,22 @@ jobs:
         echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
         ls -la drivers/base/kernelFwUpdate/
         
-        # 创建相机保护传感器目录和Kconfig文件
+        # 创建相机保护传感器目录和Kconfig文件 - 修改目录创建方式
         echo "Setting up camera protect virtual sensor..."
-        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        # 逐级创建目录，确保每个级别都正确创建
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0 || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
+        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors || true
         sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub
+        
+        # 设置正确的权限
+        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0
+        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0
+        
+        # 检查目录是否创建成功
+        echo "Checking directory structure:"
+        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
+        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors || echo "sensors目录不存在"
         
         sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
