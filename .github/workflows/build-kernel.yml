@@ -1226,12 +1226,64 @@ jobs:
         
         sudo chmod 644 drivers/soc/oplus/iomonitor/Kconfig
         
-        # 确保主目录Kconfig引用了iomonitor
+        # 创建 svelte 目录和 Kconfig
+        echo "Setting up OPLUS svelte..."
+        sudo rm -rf drivers/soc/oplus/svelte || true
+        sudo mkdir -p drivers/soc/oplus/svelte || true
+        sudo chown -R runner:docker drivers/soc/oplus/svelte
+        sudo chmod -R 755 drivers/soc/oplus/svelte
+        
+        # 创建 Kconfig 文件
+        sudo tee drivers/soc/oplus/svelte/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS Svelte performance configuration
+        #
+        
+        config OPLUS_FEATURE_SVELTE
+          bool "OPLUS Svelte performance optimization"
+          default n
+          help
+            Enable OPLUS Svelte performance optimization.
+            This option provides lightweight performance
+            optimization and monitoring for OPLUS devices.
+            
+        config OPLUS_FEATURE_SVELTE_MOONLIGHT
+          bool "OPLUS Svelte Moonlight mode"
+          default n
+          depends on OPLUS_FEATURE_SVELTE
+          help
+            Enable Svelte Moonlight mode for OPLUS devices.
+            This provides power-saving optimization for
+            background tasks and system services.
+        
+        config OPLUS_FEATURE_SVELTE_LOGGER
+          bool "OPLUS Svelte Logger"
+          default n
+          depends on OPLUS_FEATURE_SVELTE
+          help
+            Enable Svelte Logger for OPLUS devices.
+            This provides performance and resource usage logging
+            for analyzing system behavior.
+            
+        config OPLUS_FEATURE_SVELTE_TASKMONITOR
+          bool "OPLUS Svelte Task Monitor"
+          default n
+          depends on OPLUS_FEATURE_SVELTE
+          help
+            Enable Svelte Task Monitor for OPLUS devices.
+            This provides real-time monitoring of task scheduling
+            and resource consumption.
+        EOF
+        
+        sudo chmod 644 drivers/soc/oplus/svelte/Kconfig
+        
+        # 确保主目录Kconfig引用了svelte
         if [ -f drivers/soc/oplus/Kconfig ]; then
-          # 检查是否已经包含了iomonitor
-          if ! grep -q "iomonitor/Kconfig" drivers/soc/oplus/Kconfig; then
+          # 检查是否已经包含了svelte
+          if ! grep -q "svelte/Kconfig" drivers/soc/oplus/Kconfig; then
             # 添加引用到现有文件
-            sudo sed -i '/SPDX-License-Identifier/a source "drivers\/soc\/oplus\/iomonitor\/Kconfig"' drivers/soc/oplus/Kconfig
+            sudo sed -i '/SPDX-License-Identifier/a source "drivers\/soc\/oplus\/svelte\/Kconfig"' drivers/soc/oplus/Kconfig
           fi
         else
           # 创建新的Kconfig文件
@@ -1241,6 +1293,7 @@ jobs:
         # OPLUS SoC drivers configuration
         #
         
+        source "drivers/soc/oplus/svelte/Kconfig"
         source "drivers/soc/oplus/iomonitor/Kconfig"
         source "drivers/soc/oplus/lowmem_dbg/Kconfig"
         EOF
