@@ -659,24 +659,29 @@ jobs:
         echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
         ls -la drivers/base/kernelFwUpdate/
         
-        # 创建相机保护传感器目录和Kconfig文件 - 修改目录创建方式
+        # 处理相机保护传感器目录和Kconfig文件 - 考虑符号链接情况
         echo "Setting up camera protect virtual sensor..."
-        # 逐级创建目录，确保每个级别都正确创建
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0 || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub || true
+        echo "检测符号链接的实际目标目录..."
+        LINK_TARGET=$(readlink -f drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor)
+        echo "符号链接目标: $LINK_TARGET"
         
-        # 设置正确的权限
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0
-        
-        # 检查目录是否创建成功
-        echo "Checking directory structure:"
-        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors || echo "sensors目录不存在"
-        
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
+        if [ -d "$LINK_TARGET" ]; then
+          echo "正在实际目标目录创建相机保护传感器配置..."
+          # 在实际目录创建所需的子目录
+          sudo mkdir -p "$LINK_TARGET/sensors" || true
+          sudo mkdir -p "$LINK_TARGET/sensors/camera_protecthub" || true
+          
+          # 设置正确的权限
+          sudo chown -R runner:docker "$LINK_TARGET"
+          sudo chmod -R 755 "$LINK_TARGET"
+          
+          # 检查目录是否创建成功
+          echo "检查创建的目录结构:"
+          ls -la "$LINK_TARGET"
+          ls -la "$LINK_TARGET/sensors" || echo "sensors目录创建失败"
+          
+          # 创建Kconfig文件
+          sudo tee "$LINK_TARGET/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS Camera Protect Virtual Sensor
@@ -699,10 +704,45 @@ jobs:
             This option allows the system to report camera protection
             status and potential security events.
         EOF
+          
+          sudo chmod 644 "$LINK_TARGET/sensors/camera_protecthub/Kconfig"
+          echo "Camera protect virtual sensor Kconfig created at: $LINK_TARGET/sensors/camera_protecthub/Kconfig"
+          ls -la "$LINK_TARGET/sensors/camera_protecthub/" || echo "无法列出camera_protecthub目录内容"
+        else
+          echo "符号链接目标目录不存在，尝试直接创建必要文件..."
+          # 备选方案：如果vendor目录不存在或无法访问，则创建在源码树中
+          sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub || true
+          sudo chown -R runner:docker vendor/oplus/sensor/kernel/oplus_virtual_sensor || true
+          sudo chmod -R 755 vendor/oplus/sensor/kernel/oplus_virtual_sensor || true
+          
+          sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS Camera Protect Virtual Sensor
+        #
         
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
-        echo "Camera protect virtual sensor Kconfig created at: drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
-        ls -la drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/
+        config OPLUS_FEATURE_CAMERA_PROTECT
+          bool "OPLUS camera protect virtual sensor"
+          default n
+          help
+            Enable camera protect virtual sensor for OPLUS device.
+            This option provides mechanisms to detect and protect
+            the camera from physical damage or unauthorized access.
+            
+        config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
+          bool "OPLUS camera protect report"
+          default n
+          depends on OPLUS_FEATURE_CAMERA_PROTECT
+          help
+            Enable reporting mechanism for the camera protect feature.
+            This option allows the system to report camera protection
+            status and potential security events.
+        EOF
+          
+          sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
+          echo "Camera protect virtual sensor Kconfig created at: vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
+          ls -la vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/ || echo "无法列出camera_protecthub目录内容"
+        fi
 
     - name: Build kernel
       run: |
