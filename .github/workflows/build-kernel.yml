@@ -1183,18 +1183,65 @@ jobs:
         
         sudo chmod 644 drivers/soc/oplus/lowmem_dbg/Kconfig
         
-        # 创建主目录 Kconfig 以避免其他错误
-        if [ ! -f drivers/soc/oplus/Kconfig ]; then
-          sudo mkdir -p drivers/soc/oplus || true
-          sudo chown -R runner:docker drivers/soc/oplus
-          sudo chmod -R 755 drivers/soc/oplus
-          
+        # 创建iomonitor目录和Kconfig
+        echo "Setting up OPLUS iomonitor..."
+        sudo rm -rf drivers/soc/oplus/iomonitor || true
+        sudo mkdir -p drivers/soc/oplus/iomonitor || true
+        sudo chown -R runner:docker drivers/soc/oplus/iomonitor
+        sudo chmod -R 755 drivers/soc/oplus/iomonitor
+        
+        # 创建 Kconfig 文件
+        sudo tee drivers/soc/oplus/iomonitor/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS IO monitoring configuration
+        #
+        
+        config OPLUS_FEATURE_IOMONITOR
+          bool "OPLUS IO monitoring support"
+          default n
+          help
+            Enable OPLUS IO monitoring support.
+            This option provides IO operation monitoring and
+            analysis for system performance debugging.
+            
+        config OPLUS_FEATURE_IOMONITOR_CLEANUP
+          bool "OPLUS IO monitor cleanup"
+          default n
+          depends on OPLUS_FEATURE_IOMONITOR
+          help
+            Enable IO monitor cleanup mechanism.
+            This option helps manage resource cleanup
+            for the IO monitoring subsystem.
+        
+        config OPLUS_FEATURE_IOMONITOR_DETECT
+          bool "OPLUS IO monitor detection"
+          default n
+          depends on OPLUS_FEATURE_IOMONITOR
+          help
+            Enable IO monitoring detection.
+            This allows detecting problematic IO patterns
+            and provides diagnostic information.
+        EOF
+        
+        sudo chmod 644 drivers/soc/oplus/iomonitor/Kconfig
+        
+        # 确保主目录Kconfig引用了iomonitor
+        if [ -f drivers/soc/oplus/Kconfig ]; then
+          # 检查是否已经包含了iomonitor
+          if ! grep -q "iomonitor/Kconfig" drivers/soc/oplus/Kconfig; then
+            # 添加引用到现有文件
+            sudo sed -i '/SPDX-License-Identifier/a source "drivers\/soc\/oplus\/iomonitor\/Kconfig"' drivers/soc/oplus/Kconfig
+          fi
+        else
+          # 创建新的Kconfig文件
           sudo tee drivers/soc/oplus/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS SoC drivers configuration
         #
         
+        source "drivers/soc/oplus/iomonitor/Kconfig"
         source "drivers/soc/oplus/lowmem_dbg/Kconfig"
         EOF
           
