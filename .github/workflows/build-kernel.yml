@@ -557,6 +557,64 @@ jobs:
         else
           echo "Warning: drivers/soc/Kconfig does not exist!"
         fi
+        
+        # 创建 net/oplus_modules 目录和 Kconfig 文件
+        echo "Setting up net/oplus_modules..."
+        sudo rm -rf net/oplus_modules || true
+        sudo mkdir -p net/oplus_modules || true
+        sudo chown -R runner:docker net/oplus_modules
+        sudo chmod -R 755 net/oplus_modules
+        
+        sudo tee net/oplus_modules/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS network modules configuration
+        #
+        
+        config OPLUS_FEATURE_NWPOWER
+          bool "OPLUS network power optimization"
+          default n
+          help
+            Enable network power optimization for OPLUS device.
+            This option provides optimizations for network power
+            consumption and battery life.
+            
+        config OPLUS_FEATURE_WIFI_SMART_BW
+          bool "OPLUS WiFi smart bandwidth"
+          default n
+          help
+            Enable WiFi smart bandwidth for OPLUS device.
+            This option provides intelligent bandwidth management
+            for WiFi connections.
+        
+        config OPLUS_FEATURE_WIFI_SLA
+          bool "OPLUS WiFi SLA (Service Level Agreement)"
+          default n
+          help
+            Enable WiFi SLA for OPLUS device.
+            This option provides service level agreement features
+            for WiFi connections to maintain quality of service.
+            
+        config OPLUS_FEATURE_DATA_EVAL
+          bool "OPLUS data evaluation"
+          default n
+          help
+            Enable data evaluation for OPLUS device.
+            This option provides data usage analysis and
+            optimization capabilities.
+            
+        config OPLUS_FEATURE_WIFI_MTUDETECT
+          bool "OPLUS WiFi MTU detection"
+          default n
+          help
+            Enable WiFi MTU detection for OPLUS device.
+            This option provides automatic detection of the
+            maximum transmission unit for WiFi connections.
+        EOF
+        
+        sudo chmod 644 net/oplus_modules/Kconfig
+        echo "Net oplus_modules Kconfig created at: net/oplus_modules/Kconfig"
+        ls -la net/oplus_modules/
 
     - name: Build kernel
       run: |
