@@ -394,14 +394,16 @@ jobs:
         
         sudo chmod 644 mm/multi_kswapd/Kconfig
         
-        # 处理 healthinfo
-        echo "Setting up healthinfo..."
-        sudo rm -rf mm/healthinfo || true
-        sudo mkdir -p mm/healthinfo || true
-        sudo chown -R runner:docker mm/healthinfo
-        sudo chmod -R 755 mm/healthinfo
+        # 创建 healthinfo 目录和 Kconfig
+        echo "Setting up OPLUS healthinfo..."
+        sudo rm -rf drivers/soc/oplus/healthinfo || true
+        sudo mkdir -p drivers/soc/oplus/healthinfo || true
+        sudo chown -R runner:docker drivers/soc/oplus/healthinfo
+        sudo chmod -R 755 drivers/soc/oplus/healthinfo
         
-        sudo tee mm/healthinfo/Kconfig > /dev/null << 'EOF'
+        # 创建 Kconfig 文件并显式输出日志
+        echo "Creating healthinfo Kconfig file"
+        sudo tee drivers/soc/oplus/healthinfo/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS healthinfo configuration
@@ -411,946 +413,72 @@ jobs:
           bool "OPLUS healthinfo support"
           default n
           help
-            Enable healthinfo feature for OPLUS device.
+            Enable OPLUS healthinfo support.
             This option provides system health monitoring
-            and diagnostic capabilities.
+            and diagnostics for performance analysis.
+            
+        config OPLUS_FEATURE_HEALTHINFO_STANDBY
+          bool "OPLUS healthinfo standby monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo standby monitoring.
+            This tracks system resource usage during
+            standby mode for power optimization.
+        
+        config OPLUS_FEATURE_HEALTHINFO_IO_MONITOR
+          bool "OPLUS healthinfo I/O monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo I/O monitoring.
+            This tracks I/O operations and performance
+            for system diagnostics.
+            
+        config OPLUS_FEATURE_HEALTHINFO_MEM_MONITOR
+          bool "OPLUS healthinfo memory monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo memory monitoring.
+            This tracks memory usage patterns and
+            identifies potential memory issues.
+            
+        config OPLUS_FEATURE_HEALTHINFO_UFS_MONITOR
+          bool "OPLUS healthinfo UFS monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo UFS storage monitoring.
+            This tracks UFS storage performance and
+            health metrics for diagnostics.
         EOF
         
-        sudo chmod 644 mm/healthinfo/Kconfig
-        
-        # 处理 oplus_modules
-        echo "Setting up oplus_modules..."
-        sudo rm -rf net/oplus_modules || true
-        sudo mkdir -p net/oplus_modules || true
-        sudo chown -R runner:docker net/oplus_modules
-        sudo chmod -R 755 net/oplus_modules
-        
-        sudo tee net/oplus_modules/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS network modules configuration
-        #
-        
-        config OPLUS_FEATURE_WIFI_SLA
-          bool "OPLUS WiFi SLA support"
-          default n
-          help
-            Enable WiFi SLA (Service Level Agreement) feature.
-            This option provides WiFi quality monitoring and
-            optimization capabilities.
-            
-        config OPLUS_FEATURE_WIFI_OPLUSWFD
-          bool "OPLUS WiFi Display support"
-          default n
-          help
-            Enable OPLUS WiFi Display feature.
-            This option provides enhanced WiFi display
-            functionality for better user experience.
-            
-        config OPLUS_FEATURE_WIFI_MTUDETECT
-          bool "OPLUS WiFi MTU detection"
-          default n
-          help
-            Enable WiFi MTU detection feature.
-            This option helps optimize network packet size
-            for better network performance.
-        EOF
-        
-        sudo chmod 644 net/oplus_modules/Kconfig
-        
-        # 处理 kernelFwUpdate
-        echo "Setting up kernelFwUpdate..."
-        sudo rm -rf drivers/base/kernelFwUpdate || true
-        sudo mkdir -p drivers/base/kernelFwUpdate || true
-        sudo chown -R runner:docker drivers/base/kernelFwUpdate
-        sudo chmod -R 755 drivers/base/kernelFwUpdate
-        
-        sudo tee drivers/base/kernelFwUpdate/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS kernel firmware update configuration
-        #
-        
-        config OPLUS_FEATURE_KERNEL_FW_UPDATE
-          bool "OPLUS kernel firmware update support"
-          default n
-          help
-            Enable kernel firmware update feature for OPLUS device.
-            This option provides mechanisms for updating various
-            firmware components through the kernel.
-        EOF
-        
-        sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
-        
-        # 处理所有传感器目录
-        echo "Setting up sensor directories..."
-        sudo rm -rf drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor || true
-        sudo mkdir -p drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/{camera_protecthub,free_fallhub,pickup_detecthub,fp_displayhub,lux_aodhub,pedo_minutehub,oplus_activity_recognitionhub,tp_gesturehub,elevator_detecthub} || true
-        
-        # 设置权限
-        sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor
-        
-        # 创建 camera_protecthub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS camera protect sensor configuration
-        #
-        
-        config OPLUS_FEATURE_CAMERA_PROTECT
-          bool "OPLUS camera protect sensor"
-          default n
-          help
-            Enable camera protect sensor support for OPLUS device.
-            This option provides camera protection features
-            through sensor monitoring and detection.
-        EOF
-        
-        # 创建 free_fallhub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS free fall sensor configuration
-        #
-        
-        config OPLUS_FEATURE_FREE_FALL
-          bool "OPLUS free fall sensor"
-          default n
-          help
-            Enable free fall sensor support for OPLUS device.
-            This option provides free fall detection features
-            through sensor monitoring and detection.
-        EOF
-        
-        # 创建 pickup_detecthub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS pickup detect sensor configuration
-        #
-        
-        config OPLUS_FEATURE_PICKUP_DETECT
-          bool "OPLUS pickup detect sensor"
-          default n
-          help
-            Enable pickup detect sensor support for OPLUS device.
-            This option provides pickup detection features
-            through sensor monitoring and detection.
-        EOF
-        
-        # 创建 fp_displayhub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/fp_displayhub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS fingerprint display sensor configuration
-        #
-        
-        config OPLUS_FEATURE_FP_DISPLAY
-          bool "OPLUS fingerprint display sensor"
-          default n
-          help
-            Enable fingerprint display sensor support for OPLUS device.
-            This option provides fingerprint display detection features
-            through sensor monitoring and detection.
-        EOF
-        
-        # 创建 lux_aodhub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/lux_aodhub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS AOD light sensor configuration
-        #
-        
-        config OPLUS_FEATURE_LUX_AOD
-          bool "OPLUS AOD light sensor"
-          default n
-          help
-            Enable AOD light sensor support for OPLUS device.
-            This option provides ambient light detection features
-            for Always-On Display functionality.
-        EOF
-        
-        # 创建 pedo_minutehub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/pedo_minutehub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS pedometer minute sensor configuration
-        #
-        
-        config OPLUS_FEATURE_PEDO_MINUTE
-          bool "OPLUS pedometer minute sensor"
-          default n
-          help
-            Enable pedometer minute sensor support for OPLUS device.
-            This option provides step counting features with
-            minute-level precision for fitness tracking.
-        EOF
-        
-        # 创建 oplus_activity_recognitionhub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/oplus_activity_recognitionhub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS activity recognition sensor configuration
-        #
-        
-        config OPLUS_FEATURE_ACTIVITY_RECOGNITION
-          bool "OPLUS activity recognition sensor"
-          default n
-          help
-            Enable activity recognition sensor support for OPLUS device.
-            This option provides activity detection and recognition
-            features through sensor fusion and analysis.
-        EOF
-        
-        # 创建 tp_gesturehub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/tp_gesturehub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS touchpanel gesture sensor configuration
-        #
-        
-        config OPLUS_FEATURE_TP_GESTURE
-          bool "OPLUS touchpanel gesture sensor"
-          default n
-          help
-            Enable touchpanel gesture sensor support for OPLUS device.
-            This option provides touchpanel gesture detection features
-            for enhanced user interaction capabilities.
-        EOF
-        
-        # 创建 elevator_detecthub 配置
-        sudo tee drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/elevator_detecthub/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS elevator detect sensor configuration
-        #
-        
-        config OPLUS_FEATURE_ELEVATOR_DETECT
-          bool "OPLUS elevator detect sensor"
-          default n
-          help
-            Enable elevator detection sensor support for OPLUS device.
-            This option provides elevator movement detection features
-            through sensor monitoring and analysis.
-        EOF
-        
-        # 设置所有配置文件权限
-        sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/*/Kconfig
-
-        # 创建 sensor/2.0 目录和配置文件
-        echo "Setting up sensor 2.0 directories..."
-        # 先删除可能存在的符号链接
-        sudo rm -rf drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor || true
-        # 创建父目录结构
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/ || true
-        # 创建虚拟传感器目录
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/ || true
-        # 创建子传感器目录
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/camera_protecthub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/free_fallhub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/pickup_detecthub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/fp_displayhub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/lux_aodhub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/pedo_minutehub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/oplus_activity_recognitionhub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/tp_gesturehub || true
-        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/elevator_detecthub || true
-        
-        # 设置权限
-        sudo chown -R runner:docker drivers/misc/mediatek/sensor/2.0/
-        sudo chmod -R 755 drivers/misc/mediatek/sensor/2.0/
-
-        # 创建主 Kconfig 文件
-        sudo tee drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS virtual sensor configuration for sensor 2.0
-        #
-        
-        config OPLUS_FEATURE_VIRTUAL_SENSOR
-          bool "OPLUS virtual sensor support"
-          default n
-          help
-            Enable virtual sensor feature for OPLUS device.
-            This provides an integration point for various virtual
-            sensors used in OPLUS devices.
-            
-        # Include sub-sensors configs
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/pickup_detecthub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/fp_displayhub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/lux_aodhub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/pedo_minutehub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/oplus_activity_recognitionhub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/tp_gesturehub/Kconfig"
-        source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/elevator_detecthub/Kconfig"
-        EOF
-        
-        # 创建各个子传感器的 Kconfig 文件
-        for sensor in camera_protecthub free_fallhub pickup_detecthub fp_displayhub lux_aodhub pedo_minutehub oplus_activity_recognitionhub tp_gesturehub elevator_detecthub; do
-            sudo tee drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/${sensor}/Kconfig > /dev/null << EOF
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS ${sensor} configuration
-        #
-        
-        config OPLUS_FEATURE_$(echo ${sensor} | tr 'a-z' 'A-Z' | sed 's/HUB//')
-          bool "OPLUS ${sensor} support"
-          default n
-          help
-            Enable ${sensor} support for OPLUS device.
-            This option provides sensor functionality for OPLUS devices.
-        EOF
-        done
-        
-        # 设置所有配置文件权限
-        sudo chmod 644 drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/Kconfig
-        sudo chmod 644 drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/sensors/*/Kconfig
-
-        # 创建传感器2.0主目录 Kconfig 引用
-        sudo tee drivers/misc/mediatek/sensor/2.0/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # MediaTek sensor 2.0 configuration
-        #
-        
-        config MTK_SENSOR_2_0
-          bool "Support MediaTek sensor 2.0"
-          default n
-          help
-            Support MediaTek sensors 2.0 framework.
-            Set to yes if your platform supports
-            sensor 2.0 framework, otherwise
-            set to no.
-        
-        if MTK_SENSOR_2_0
-          source "drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/Kconfig"
-        endif
-        EOF
-        
-        sudo chmod 644 drivers/misc/mediatek/sensor/2.0/Kconfig
-
-        # 创建 OPLUS 触摸屏目录和配置
-        echo "Setting up OPLUS touchscreen..."
-        sudo rm -rf drivers/input/touchscreen/oplus_touchscreen || true
-        sudo mkdir -p drivers/input/touchscreen/oplus_touchscreen || true
-        
-        # 设置权限
-        sudo chown -R runner:docker drivers/input/touchscreen/oplus_touchscreen
-        sudo chmod -R 755 drivers/input/touchscreen/oplus_touchscreen
-        
-        # 创建主 Kconfig 文件
-        sudo tee drivers/input/touchscreen/oplus_touchscreen/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS touchscreen configuration
-        #
-        
-        config OPLUS_FEATURE_TOUCHSCREEN
-          bool "OPLUS touchscreen support"
-          default n
-          help
-            Enable OPLUS touchscreen support.
-            This option provides touchscreen drivers
-            and features specific to OPLUS devices.
-            
-        config TOUCHPANEL_OPLUS
-          bool "OPLUS touchpanel driver"
-          default n
-          help
-            Enable OPLUS touchpanel driver.
-            This includes various touchscreen controllers
-            used in OPLUS devices with custom features.
-            
-        config TOUCHPANEL_ALGORITHM
-          bool "OPLUS touchpanel algorithm"
-          default n
-          depends on TOUCHPANEL_OPLUS
-          help
-            Enable touchscreen algorithm for OPLUS devices.
-            This provides enhanced touch experience through
-            software algorithms for touch processing.
-        EOF
-        
-        sudo chmod 644 drivers/input/touchscreen/oplus_touchscreen/Kconfig
-
-        # 创建 OPLUS 指纹驱动目录和配置
-        echo "Setting up OPLUS fingerprint drivers..."
-        sudo rm -rf drivers/input/oplus_fp_drivers || true
-        sudo mkdir -p drivers/input/oplus_fp_drivers || true
-        
-        # 设置权限
-        sudo chown -R runner:docker drivers/input/oplus_fp_drivers
-        sudo chmod -R 755 drivers/input/oplus_fp_drivers
-        
-        # 创建 Kconfig 文件
-        sudo tee drivers/input/oplus_fp_drivers/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS fingerprint drivers configuration
-        #
-        
-        config OPLUS_FINGERPRINT
-          bool "OPLUS fingerprint driver support"
-          default n
-          help
-            Enable OPLUS fingerprint driver support.
-            This option provides support for fingerprint
-            sensors used in OPLUS devices.
-            
-        config OPLUS_FINGERPRINT_OPTICAL
-          bool "OPLUS optical fingerprint support"
-          default n
-          depends on OPLUS_FINGERPRINT
-          help
-            Enable optical fingerprint sensor support
-            for OPLUS devices with under-display
-            optical fingerprint sensors.
-            
-        config OPLUS_FINGERPRINT_CAPACITIVE
-          bool "OPLUS capacitive fingerprint support"
-          default n
-          depends on OPLUS_FINGERPRINT
-          help
-            Enable capacitive fingerprint sensor support
-            for OPLUS devices with side-mounted or
-            rear-mounted capacitive fingerprint sensors.
-            
-        config OPLUS_FINGERPRINT_GOODIX
-          bool "Goodix fingerprint sensor support"
-          default n
-          depends on OPLUS_FINGERPRINT
-          help
-            Enable Goodix fingerprint sensor support for
-            OPLUS devices using Goodix fingerprint sensors.
-            
-        config OPLUS_FINGERPRINT_FPC
-          bool "FPC fingerprint sensor support"
-          default n
-          depends on OPLUS_FINGERPRINT
-          help
-            Enable FPC (Fingerprint Cards) sensor support
-            for OPLUS devices using FPC fingerprint sensors.
-        EOF
-        
-        sudo chmod 644 drivers/input/oplus_fp_drivers/Kconfig
-
-        # 创建 OPLUS 安全驱动目录和配置
-        echo "Setting up OPLUS secure drivers..."
-        sudo rm -rf drivers/input/oplus_secure_drivers || true
-        sudo mkdir -p drivers/input/oplus_secure_drivers || true
-        
-        # 设置权限
-        sudo chown -R runner:docker drivers/input/oplus_secure_drivers
-        sudo chmod -R 755 drivers/input/oplus_secure_drivers
-        
-        # 创建 Kconfig 文件
-        sudo tee drivers/input/oplus_secure_drivers/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS secure drivers configuration
-        #
-        
-        config OPLUS_SECURE_COMMON
-          bool "OPLUS secure common driver"
-          default n
-          help
-            Enable OPLUS secure common driver support.
-            This provides common security functions
-            for OPLUS devices.
-            
-        config OPLUS_SECURE_QCOM
-          bool "OPLUS secure driver for Qualcomm platform"
-          default n
-          depends on OPLUS_SECURE_COMMON
-          help
-            Enable secure driver for Qualcomm platform.
-            This provides security features specific
-            to OPLUS devices with Qualcomm chipsets.
-            
-        config OPLUS_SECURE_MTK
-          bool "OPLUS secure driver for MediaTek platform"
-          default n
-          depends on OPLUS_SECURE_COMMON
-          help
-            Enable secure driver for MediaTek platform.
-            This provides security features specific
-            to OPLUS devices with MediaTek chipsets.
-            
-        config OPLUS_SECURE_SECBOOT_STATUS
-          bool "OPLUS secure boot status check"
-          default n
-          depends on OPLUS_SECURE_COMMON
-          help
-            Enable secure boot status checking.
-            This provides secure boot verification and
-            status reporting for OPLUS devices.
-            
-        config OPLUS_SECURE_FG_MEMMAP_WRITE
-          bool "OPLUS secure fuel gauge memory map write"
-          default n
-          depends on OPLUS_SECURE_COMMON
-          help
-            Enable secure fuel gauge memory map write.
-            This provides protection for fuel gauge
-            memory map writing operations.
-        EOF
-        
-        sudo chmod 644 drivers/input/oplus_secure_drivers/Kconfig
-
-        # 创建OPLUS电源管理（采用不同的方法）
-        echo "Setting up OPLUS power management (alternative approach)..."
-        
-        # 首先查看主Kconfig文件，看看它是如何包含oplus/Kconfig的
-        grep -n "oplus/Kconfig" drivers/power/Kconfig || true
-        
-        # 创建完整的OPLUS电源管理目录结构
-        rm -rf drivers/power/supply/oplus || true
-        sudo mkdir -p drivers/power/supply/oplus || true
-        sudo chown -R runner:docker drivers/power/supply/oplus
-        sudo chmod -R 755 drivers/power/supply/oplus
-        
-        # 创建Kconfig和Makefile文件
-        sudo tee drivers/power/supply/oplus/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS power management configuration
-        #
-        
-        config OPLUS_FEATURE_CHG_BASIC
-          bool "OPLUS charging system"
-          default n
-          help
-            Enable OPLUS charging system support.
-            This provides charging drivers and features
-            specific to OPLUS devices.
-        
-        config OPLUS_CHARGER
-          bool "OPLUS charger driver"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable OPLUS charger driver.
-            This includes various charger controller designs
-            used in OPLUS devices.
-        
-        config OPLUS_CHIP_SOC_NODE
-          bool "OPLUS chip SOC node"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable chip SOC node for OPLUS devices.
-            This option provides information about the SOC
-            of the OPLUS chip through sysfs.
-        
-        config OPLUS_SHORT_C_BATT_CHECK
-          bool "OPLUS short circuit battery check"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable short circuit battery checking for OPLUS devices.
-            This feature helps to detect and handle battery
-            short circuit conditions.
-            
-        config OPLUS_SMART_CHARGER_SUPPORT
-          bool "OPLUS smart charger support"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable smart charger support for OPLUS devices.
-            This feature provides intelligent charging algorithms
-            to optimize battery life and charging speed.
-            
-        config OPLUS_SHORT_HW_CHECK
-          bool "OPLUS short hardware check"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable short hardware checking for OPLUS devices.
-            This feature helps to detect and handle hardware
-            short circuit conditions.
-            
-        config OPLUS_DUAL_CHARGER_SUPPORT
-          bool "OPLUS dual charger support"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable dual charger support for OPLUS devices.
-            This feature allows using two charging ICs
-            simultaneously for faster charging.
-            
-        config OPLUS_CALL_MODE_SUPPORT
-          bool "OPLUS call mode charging support"
-          default n
-          depends on OPLUS_FEATURE_CHG_BASIC
-          help
-            Enable call mode support for OPLUS devices.
-            This feature adjusts charging behavior during
-            phone calls to reduce heat generation.
-        EOF
-        
-        sudo chmod 644 drivers/power/supply/oplus/Kconfig
-        
-        # 创建必要的power/oplus目录（但作为供电目录的链接）
-        sudo rm -rf drivers/power/oplus || true
-        sudo mkdir -p drivers/power/oplus || true
-        sudo chown -R runner:docker drivers/power/oplus
-        sudo chmod -R 755 drivers/power/oplus
-        
-        # 复制Kconfig文件到power/oplus目录
-        sudo cp drivers/power/supply/oplus/Kconfig drivers/power/oplus/Kconfig
-        sudo chmod 644 drivers/power/oplus/Kconfig
-        
-        # 调试输出
-        echo "Created OPLUS power management directories and files:"
-        ls -la drivers/power/oplus/ || true
-        ls -la drivers/power/supply/oplus/ || true
-        
-        # 修改主power Kconfig文件以避免包含缺失的文件
-        echo "Modifying main power Kconfig file..."
-        POWER_KCONFIG="drivers/power/Kconfig"
-        if [ -f "$POWER_KCONFIG" ]; then
-          # 备份原始文件
-          cp $POWER_KCONFIG ${POWER_KCONFIG}.bak
-          
-          # 查找并注释掉对oplus/Kconfig的引用行
-          # 这行通常看起来像: source "drivers\/power\/oplus\/Kconfig"
-          sudo sed -i 's/source "drivers\/power\/oplus\/Kconfig"/#source "drivers\/power\/oplus\/Kconfig" # commented for build/g' $POWER_KCONFIG
-          
-          # 确认更改
-          echo "Modified $POWER_KCONFIG:"
-          grep -n "oplus/Kconfig" $POWER_KCONFIG || true
-          
-          echo "Difference between original and modified file:"
-          diff ${POWER_KCONFIG}.bak $POWER_KCONFIG || true
-        else
-          echo "Warning: $POWER_KCONFIG does not exist"
-        fi
-        
-        # 创建批量处理Kconfig缺失的函数
-        echo "Setting up automatic Kconfig error handler..."
-        create_kconfig_template() {
-          local kconfig_path=$1
-          local dir_path=$(dirname "$kconfig_path")
-          
-          echo "Creating directory and Kconfig for: $kconfig_path"
-          sudo mkdir -p "$dir_path"
-          sudo chown -R runner:docker "$dir_path"
-          sudo chmod -R 755 "$dir_path"
-          
-          # 创建一个简单的Kconfig模板
-          sudo tee "$kconfig_path" > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # Auto-generated Kconfig file for build
-        # This file was automatically created to fix build errors
-        #
-        
-        # Empty configuration to satisfy build dependencies
-        EOF
-          
-          sudo chmod 644 "$kconfig_path"
-          echo "Created $kconfig_path successfully"
-        }
-        
-        # 为了防止还有其他缺失的Kconfig文件，让我们检查一些常见的OPLUS组件
-        OPLUS_COMPONENTS=(
-          "drivers/power/oplus"
-          "drivers/power/supply/oplus"
-          "drivers/misc/mediatek/ccu/src/2.1/ccu_ext_interface"
-          "drivers/misc/mediatek/imgsensor/src/mt6873/camera_project/k6873v1_64"
-          "drivers/misc/mediatek/memory-ssmr/met_memory_utils"
-          "drivers/misc/mediatek/performance/fpsgo_v3/fbt_cpu"
-          "drivers/misc/mediatek/geniezone"
-          "drivers/misc/mediatek/nand"
-          "drivers/misc/mediatek/connectivity/common"
-          "drivers/misc/mediatek/performance/boost_ctrl"
-          "drivers/misc/mediatek/memory-amms"
-          "drivers/misc/mediatek/ext_gic"
-          "drivers/misc/mediatek/mmp"
-          "drivers/misc/mediatek/apusys"
-          "drivers/misc/mediatek/vpu"
-          "drivers/misc/mediatek/mdla"
-          "drivers/misc/mediatek/vibrator"
-          "drivers/misc/mediatek/ccu"
-          "drivers/misc/mediatek/ext_gic"
-          "drivers/misc/oplus"
-        )
-        
-        # 为每个组件创建Kconfig文件，如果目录不存在的话
-        for component in "${OPLUS_COMPONENTS[@]}"; do
-          kconfig_path="${component}/Kconfig"
-          if [ ! -f "$kconfig_path" ]; then
-            create_kconfig_template "$kconfig_path"
-          fi
-        done
-
-        # 处理音频编解码器的Kconfig
-        echo "Setting up audio codec configuration..."
-        sudo rm -rf sound/soc/codecs/audio || true
-        sudo mkdir -p sound/soc/codecs/audio || true
-        sudo chown -R runner:docker sound/soc/codecs/audio
-        sudo chmod -R 755 sound/soc/codecs/audio
-        
-        # 创建音频编解码器Kconfig文件
-        sudo tee sound/soc/codecs/audio/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS audio codec configuration
-        #
-        
-        config SND_SOC_OPLUS_CODEC_AUDIO
-          bool "OPLUS Audio codec support"
-          default n
-          help
-            Enable OPLUS audio codec support.
-            This enables audio codec drivers specific to OPLUS devices.
-            
-        config SND_SOC_OPLUS_PA_MANAGER
-          bool "OPLUS audio PA manager"
-          default n
-          depends on SND_SOC_OPLUS_CODEC_AUDIO
-          help
-            Enable OPLUS audio PA manager.
-            This enables power amplifier management
-            for OPLUS audio subsystem.
-            
-        config SND_SOC_TFA98XX_OPLUS
-          bool "NXP TFA98XX codec support for OPLUS"
-          default n
-          depends on SND_SOC_OPLUS_CODEC_AUDIO
-          help
-            Enable NXP TFA98XX codec support customized for OPLUS devices.
-            This enables the TFA98XX codec driver with
-            OPLUS-specific modifications.
-            
-        config SND_SOC_AW87339_OPLUS
-          bool "AWINIC AW87339 codec support for OPLUS"
-          default n
-          depends on SND_SOC_OPLUS_CODEC_AUDIO
-          help
-            Enable AWINIC AW87339 codec support customized for OPLUS devices.
-            This enables the AW87339 codec driver with
-            OPLUS-specific modifications.
-        EOF
-        
-        sudo chmod 644 sound/soc/codecs/audio/Kconfig
-        
-        # 将 sound/soc/codecs/audio/Kconfig 添加到自动处理列表中
-        OPLUS_COMPONENTS+=("sound/soc/codecs/audio")
-
-        # 创建 oplus lowmem_dbg 目录和 Kconfig
-        echo "Setting up OPLUS lowmem_dbg..."
-        sudo rm -rf drivers/soc/oplus/lowmem_dbg || true
-        sudo mkdir -p drivers/soc/oplus/lowmem_dbg || true
-        sudo chown -R runner:docker drivers/soc/oplus/lowmem_dbg
-        sudo chmod -R 755 drivers/soc/oplus/lowmem_dbg
-        
-        # 创建 Kconfig 文件
-        sudo tee drivers/soc/oplus/lowmem_dbg/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS low memory debug configuration
-        #
-        
-        config OPLUS_FEATURE_LOWMEM_DBG
-          bool "OPLUS low memory debug support"
-          default n
-          help
-            Enable OPLUS low memory debug support.
-            This option provides debugging mechanisms for 
-            low memory situations on OPLUS devices.
-            
-        config OPLUS_FEATURE_LAST_KMSG
-          bool "OPLUS last kernel message"
-          default n
-          depends on OPLUS_FEATURE_LOWMEM_DBG
-          help
-            Enable OPLUS last kernel message feature.
-            This preserves the last kernel messages for 
-            debugging after system crashes.
-        
-        config OPLUS_FEATURE_EMMC_DRIVER
-          bool "OPLUS EMMC driver special for lowmem"
-          default n
-          depends on OPLUS_FEATURE_LOWMEM_DBG
-          help
-            Enable OPLUS EMMC driver special features
-            for low memory conditions.
-        EOF
-        
-        sudo chmod 644 drivers/soc/oplus/lowmem_dbg/Kconfig
-        
-        # 创建iomonitor目录和Kconfig
-        echo "Setting up OPLUS iomonitor..."
-        sudo rm -rf drivers/soc/oplus/iomonitor || true
-        sudo mkdir -p drivers/soc/oplus/iomonitor || true
-        sudo chown -R runner:docker drivers/soc/oplus/iomonitor
-        sudo chmod -R 755 drivers/soc/oplus/iomonitor
-        
-        # 创建 Kconfig 文件
-        sudo tee drivers/soc/oplus/iomonitor/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS IO monitoring configuration
-        #
-        
-        config OPLUS_FEATURE_IOMONITOR
-          bool "OPLUS IO monitoring support"
-          default n
-          help
-            Enable OPLUS IO monitoring support.
-            This option provides IO operation monitoring and
-            analysis for system performance debugging.
-            
-        config OPLUS_FEATURE_IOMONITOR_CLEANUP
-          bool "OPLUS IO monitor cleanup"
-          default n
-          depends on OPLUS_FEATURE_IOMONITOR
-          help
-            Enable IO monitor cleanup mechanism.
-            This option helps manage resource cleanup
-            for the IO monitoring subsystem.
-        
-        config OPLUS_FEATURE_IOMONITOR_DETECT
-          bool "OPLUS IO monitor detection"
-          default n
-          depends on OPLUS_FEATURE_IOMONITOR
-          help
-            Enable IO monitoring detection.
-            This allows detecting problematic IO patterns
-            and provides diagnostic information.
-        EOF
-        
-        sudo chmod 644 drivers/soc/oplus/iomonitor/Kconfig
-        
-        # 创建 svelte 目录和 Kconfig
-        echo "Setting up OPLUS svelte..."
-        sudo rm -rf drivers/soc/oplus/svelte || true
-        sudo mkdir -p drivers/soc/oplus/svelte || true
-        sudo chown -R runner:docker drivers/soc/oplus/svelte
-        sudo chmod -R 755 drivers/soc/oplus/svelte
-        
-        # 创建 Kconfig 文件
-        sudo tee drivers/soc/oplus/svelte/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS Svelte performance configuration
-        #
-        
-        config OPLUS_FEATURE_SVELTE
-          bool "OPLUS Svelte performance optimization"
-          default n
-          help
-            Enable OPLUS Svelte performance optimization.
-            This option provides lightweight performance
-            optimization and monitoring for OPLUS devices.
-            
-        config OPLUS_FEATURE_SVELTE_MOONLIGHT
-          bool "OPLUS Svelte Moonlight mode"
-          default n
-          depends on OPLUS_FEATURE_SVELTE
-          help
-            Enable Svelte Moonlight mode for OPLUS devices.
-            This provides power-saving optimization for
-            background tasks and system services.
-        
-        config OPLUS_FEATURE_SVELTE_LOGGER
-          bool "OPLUS Svelte Logger"
-          default n
-          depends on OPLUS_FEATURE_SVELTE
-          help
-            Enable Svelte Logger for OPLUS devices.
-            This provides performance and resource usage logging
-            for analyzing system behavior.
-            
-        config OPLUS_FEATURE_SVELTE_TASKMONITOR
-          bool "OPLUS Svelte Task Monitor"
-          default n
-          depends on OPLUS_FEATURE_SVELTE
-          help
-            Enable Svelte Task Monitor for OPLUS devices.
-            This provides real-time monitoring of task scheduling
-            and resource consumption.
-        EOF
-        
-        sudo chmod 644 drivers/soc/oplus/svelte/Kconfig
-        
-        # 创建 system 目录和 Kconfig
-        echo "Setting up OPLUS system..."
-        sudo rm -rf drivers/soc/oplus/system || true
-        sudo mkdir -p drivers/soc/oplus/system || true
-        sudo chown -R runner:docker drivers/soc/oplus/system
-        sudo chmod -R 755 drivers/soc/oplus/system
-        
-        # 创建 Kconfig 文件
-        sudo tee drivers/soc/oplus/system/Kconfig > /dev/null << 'EOF'
-        # SPDX-License-Identifier: GPL-2.0
-        #
-        # OPLUS System configuration
-        #
-        
-        config OPLUS_SYSTEM_KERNEL
-          bool "OPLUS system kernel features"
-          default n
-          help
-            Enable OPLUS system kernel features.
-            This option provides basic system features
-            for OPLUS devices.
-            
-        config OPLUS_FEATURE_PHOENIX
-          bool "OPLUS Phoenix system recovery"
-          default n
-          depends on OPLUS_SYSTEM_KERNEL
-          help
-            Enable Phoenix system recovery for OPLUS devices.
-            This system helps recover from system hangs and crashes.
-        
-        config OPLUS_FEATURE_PMIC_MONITOR
-          bool "OPLUS PMIC monitoring"
-          default n
-          depends on OPLUS_SYSTEM_KERNEL
-          help
-            Enable PMIC monitoring for OPLUS devices.
-            This monitors power management IC status and activities.
-            
-        config OPLUS_FEATURE_HUNG_TASK_ENHANCE
-          bool "OPLUS hung task enhancement"
-          default n
-          depends on OPLUS_SYSTEM_KERNEL
-          help
-            Enable hung task enhancement for OPLUS devices.
-            This provides better detection and handling of system
-            processes that become unresponsive.
-            
-        config OPLUS_FEATURE_SHUTDOWN_DETECT
-          bool "OPLUS shutdown detection"
-          default n
-          depends on OPLUS_SYSTEM_KERNEL
-          help
-            Enable shutdown detection for OPLUS devices.
-            This detects abnormal shutdown sequences and logs them.
-        EOF
-        
-        sudo chmod 644 drivers/soc/oplus/system/Kconfig
-        
-        # 确保主目录Kconfig引用了system
+        sudo chmod 644 drivers/soc/oplus/healthinfo/Kconfig
+        echo "Healthinfo Kconfig file created at: drivers/soc/oplus/healthinfo/Kconfig"
+        ls -la drivers/soc/oplus/healthinfo/
+        
+        # 确保主目录Kconfig引用了healthinfo
         if [ -f drivers/soc/oplus/Kconfig ]; then
-          # 检查是否已经包含了system
-          if ! grep -q "system/Kconfig" drivers/soc/oplus/Kconfig; then
+          # 检查是否已经包含了healthinfo
+          if ! grep -q "healthinfo/Kconfig" drivers/soc/oplus/Kconfig; then
             # 添加引用到现有文件
-            sudo sed -i '/SPDX-License-Identifier/a source "drivers\/soc\/oplus\/system\/Kconfig"' drivers/soc/oplus/Kconfig
+            echo "Adding healthinfo reference to existing Kconfig"
+            sudo sed -i '1s/^/source "drivers\/soc\/oplus\/healthinfo\/Kconfig"\n/' drivers/soc/oplus/Kconfig
+          else
+            echo "Healthinfo already referenced in Kconfig"
           fi
+          cat drivers/soc/oplus/Kconfig
         else
           # 创建新的Kconfig文件
+          echo "Creating new oplus Kconfig file with healthinfo reference"
           sudo tee drivers/soc/oplus/Kconfig > /dev/null << 'EOF'
         # SPDX-License-Identifier: GPL-2.0
         #
         # OPLUS SoC drivers configuration
         #
         
+        source "drivers/soc/oplus/healthinfo/Kconfig"
         source "drivers/soc/oplus/system/Kconfig"
         source "drivers/soc/oplus/svelte/Kconfig"
         source "drivers/soc/oplus/iomonitor/Kconfig"
@@ -1358,6 +486,23 @@ jobs:
         EOF
           
           sudo chmod 644 drivers/soc/oplus/Kconfig
+          echo "New oplus Kconfig created with healthinfo reference"
+          cat drivers/soc/oplus/Kconfig
+        fi
+        
+        # 检查主soc Kconfig是否引用了oplus/Kconfig
+        echo "Checking if main soc/Kconfig includes oplus/Kconfig..."
+        if [ -f drivers/soc/Kconfig ]; then
+          if ! grep -q "oplus/Kconfig" drivers/soc/Kconfig; then
+            echo "Adding oplus reference to main soc Kconfig"
+            # 找到结束标记并在之前添加引用
+            sudo sed -i '/endmenu/i source "drivers\/soc\/oplus\/Kconfig"' drivers/soc/Kconfig
+          else
+            echo "oplus already referenced in main soc Kconfig"
+          fi
+          grep -n "oplus" drivers/soc/Kconfig
+        else
+          echo "Warning: drivers/soc/Kconfig does not exist!"
         fi
 
     - name: Build kernel
