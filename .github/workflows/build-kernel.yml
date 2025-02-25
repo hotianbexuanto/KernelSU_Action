@@ -1278,12 +1278,70 @@ jobs:
         
         sudo chmod 644 drivers/soc/oplus/svelte/Kconfig
         
-        # 确保主目录Kconfig引用了svelte
+        # 创建 system 目录和 Kconfig
+        echo "Setting up OPLUS system..."
+        sudo rm -rf drivers/soc/oplus/system || true
+        sudo mkdir -p drivers/soc/oplus/system || true
+        sudo chown -R runner:docker drivers/soc/oplus/system
+        sudo chmod -R 755 drivers/soc/oplus/system
+        
+        # 创建 Kconfig 文件
+        sudo tee drivers/soc/oplus/system/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS System configuration
+        #
+        
+        config OPLUS_SYSTEM_KERNEL
+          bool "OPLUS system kernel features"
+          default n
+          help
+            Enable OPLUS system kernel features.
+            This option provides basic system features
+            for OPLUS devices.
+            
+        config OPLUS_FEATURE_PHOENIX
+          bool "OPLUS Phoenix system recovery"
+          default n
+          depends on OPLUS_SYSTEM_KERNEL
+          help
+            Enable Phoenix system recovery for OPLUS devices.
+            This system helps recover from system hangs and crashes.
+        
+        config OPLUS_FEATURE_PMIC_MONITOR
+          bool "OPLUS PMIC monitoring"
+          default n
+          depends on OPLUS_SYSTEM_KERNEL
+          help
+            Enable PMIC monitoring for OPLUS devices.
+            This monitors power management IC status and activities.
+            
+        config OPLUS_FEATURE_HUNG_TASK_ENHANCE
+          bool "OPLUS hung task enhancement"
+          default n
+          depends on OPLUS_SYSTEM_KERNEL
+          help
+            Enable hung task enhancement for OPLUS devices.
+            This provides better detection and handling of system
+            processes that become unresponsive.
+            
+        config OPLUS_FEATURE_SHUTDOWN_DETECT
+          bool "OPLUS shutdown detection"
+          default n
+          depends on OPLUS_SYSTEM_KERNEL
+          help
+            Enable shutdown detection for OPLUS devices.
+            This detects abnormal shutdown sequences and logs them.
+        EOF
+        
+        sudo chmod 644 drivers/soc/oplus/system/Kconfig
+        
+        # 确保主目录Kconfig引用了system
         if [ -f drivers/soc/oplus/Kconfig ]; then
-          # 检查是否已经包含了svelte
-          if ! grep -q "svelte/Kconfig" drivers/soc/oplus/Kconfig; then
+          # 检查是否已经包含了system
+          if ! grep -q "system/Kconfig" drivers/soc/oplus/Kconfig; then
             # 添加引用到现有文件
-            sudo sed -i '/SPDX-License-Identifier/a source "drivers\/soc\/oplus\/svelte\/Kconfig"' drivers/soc/oplus/Kconfig
+            sudo sed -i '/SPDX-License-Identifier/a source "drivers\/soc\/oplus\/system\/Kconfig"' drivers/soc/oplus/Kconfig
           fi
         else
           # 创建新的Kconfig文件
@@ -1293,6 +1351,7 @@ jobs:
         # OPLUS SoC drivers configuration
         #
         
+        source "drivers/soc/oplus/system/Kconfig"
         source "drivers/soc/oplus/svelte/Kconfig"
         source "drivers/soc/oplus/iomonitor/Kconfig"
         source "drivers/soc/oplus/lowmem_dbg/Kconfig"
