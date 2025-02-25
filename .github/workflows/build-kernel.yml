@@ -638,6 +638,59 @@ jobs:
         # 设置所有配置文件权限
         sudo chmod 644 drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/*/Kconfig
 
+        # 处理 sensor 2.0 目录
+        echo "Setting up sensor 2.0 directories..."
+        sudo rm -rf drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor || true
+        sudo mkdir -p drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor || true
+        sudo chown -R runner:docker drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor
+        sudo chmod -R 755 drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor
+        
+        # 创建 sensor 2.0 的 Kconfig
+        sudo tee drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS virtual sensor 2.0 configuration
+        #
+        
+        config OPLUS_FEATURE_VIRTUAL_SENSOR
+          bool "OPLUS virtual sensor 2.0 support"
+          default n
+          help
+            Enable virtual sensor 2.0 support for OPLUS device.
+            This option provides enhanced sensor features and
+            capabilities for OPLUS devices.
+            
+        config OPLUS_FEATURE_PICKUP_DETECT
+          bool "OPLUS pickup detect sensor"
+          default n
+          depends on OPLUS_FEATURE_VIRTUAL_SENSOR
+          help
+            Enable pickup detection sensor support.
+            
+        config OPLUS_FEATURE_FP_DISPLAY
+          bool "OPLUS fingerprint display sensor"
+          default n
+          depends on OPLUS_FEATURE_VIRTUAL_SENSOR
+          help
+            Enable fingerprint display sensor support.
+            
+        config OPLUS_FEATURE_LUX_AOD
+          bool "OPLUS AOD light sensor"
+          default n
+          depends on OPLUS_FEATURE_VIRTUAL_SENSOR
+          help
+            Enable AOD light sensor support.
+            
+        config OPLUS_FEATURE_PEDO_MINUTE
+          bool "OPLUS pedometer minute sensor"
+          default n
+          depends on OPLUS_FEATURE_VIRTUAL_SENSOR
+          help
+            Enable pedometer minute sensor support.
+EOF
+        
+        sudo chmod 644 drivers/misc/mediatek/sensor/2.0/oplus_virtual_sensor/Kconfig
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
