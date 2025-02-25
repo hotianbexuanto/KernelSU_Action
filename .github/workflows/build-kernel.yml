@@ -732,6 +732,50 @@ jobs:
         
         sudo chmod 644 drivers/misc/mediatek/sensor/2.0/Kconfig
 
+        # 创建 OPLUS 触摸屏目录和配置
+        echo "Setting up OPLUS touchscreen..."
+        sudo rm -rf drivers/input/touchscreen/oplus_touchscreen || true
+        sudo mkdir -p drivers/input/touchscreen/oplus_touchscreen || true
+        
+        # 设置权限
+        sudo chown -R runner:docker drivers/input/touchscreen/oplus_touchscreen
+        sudo chmod -R 755 drivers/input/touchscreen/oplus_touchscreen
+        
+        # 创建主 Kconfig 文件
+        sudo tee drivers/input/touchscreen/oplus_touchscreen/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS touchscreen configuration
+        #
+        
+        config OPLUS_FEATURE_TOUCHSCREEN
+          bool "OPLUS touchscreen support"
+          default n
+          help
+            Enable OPLUS touchscreen support.
+            This option provides touchscreen drivers
+            and features specific to OPLUS devices.
+            
+        config TOUCHPANEL_OPLUS
+          bool "OPLUS touchpanel driver"
+          default n
+          help
+            Enable OPLUS touchpanel driver.
+            This includes various touchscreen controllers
+            used in OPLUS devices with custom features.
+            
+        config TOUCHPANEL_ALGORITHM
+          bool "OPLUS touchpanel algorithm"
+          default n
+          depends on TOUCHPANEL_OPLUS
+          help
+            Enable touchscreen algorithm for OPLUS devices.
+            This provides enhanced touch experience through
+            software algorithms for touch processing.
+        EOF
+        
+        sudo chmod 644 drivers/input/touchscreen/oplus_touchscreen/Kconfig
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
