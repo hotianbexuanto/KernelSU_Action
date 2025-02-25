@@ -659,14 +659,14 @@ jobs:
         echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
         ls -la drivers/base/kernelFwUpdate/
         
-        # 处理相机保护传感器目录和Kconfig文件 - 使用更健壮的方式
+        # 处理相机保护传感器目录和Kconfig文件
         echo "Setting up camera protect virtual sensor..."
         SENSOR_DIR="drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor"
         
         # 首先处理基础目录
         if [ ! -d "drivers/misc/mediatek/sensors-1.0" ]; then
             echo "基础目录不存在，创建完整路径"
-            sudo mkdir -p drivers/misc/mediatek/sensors-1.0 || true
+            sudo mkdir -p drivers/misc/mediatek/sensors-1.0
             sudo chown -R runner:docker drivers/misc/mediatek/sensors-1.0
             sudo chmod -R 755 drivers/misc/mediatek/sensors-1.0
         fi
@@ -697,7 +697,7 @@ jobs:
         
         # 创建相机保护传感器的Kconfig文件
         echo "创建相机保护传感器Kconfig文件..."
-        sudo tee "$SENSOR_DIR/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOF'
+        sudo tee "$SENSOR_DIR/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOT'
 # SPDX-License-Identifier: GPL-2.0
 #
 # OPLUS Camera Protect Virtual Sensor
@@ -719,7 +719,7 @@ config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
     Enable reporting mechanism for the camera protect feature.
     This option allows the system to report camera protection
     status and potential security events.
-EOF
+EOT
         
         sudo chmod 644 "$SENSOR_DIR/sensors/camera_protecthub/Kconfig"
         echo "Camera protect virtual sensor Kconfig created at: $SENSOR_DIR/sensors/camera_protecthub/Kconfig"
@@ -727,7 +727,7 @@ EOF
         
         # 创建free_fallhub配置
         echo "创建free_fallhub配置..."
-        sudo tee "$SENSOR_DIR/sensors/free_fallhub/Kconfig" > /dev/null << 'EOF'
+        sudo tee "$SENSOR_DIR/sensors/free_fallhub/Kconfig" > /dev/null << 'EOT'
 # SPDX-License-Identifier: GPL-2.0
 #
 # OPLUS Free Fall Virtual Sensor
@@ -749,7 +749,7 @@ config OPLUS_FEATURE_FREE_FALL_REPORT
     Enable reporting mechanism for the free fall feature.
     This option allows the system to report free fall
     detection events for analysis.
-EOF
+EOT
         
         sudo chmod 644 "$SENSOR_DIR/sensors/free_fallhub/Kconfig"
         echo "Free fall virtual sensor Kconfig created at: $SENSOR_DIR/sensors/free_fallhub/Kconfig"
@@ -762,7 +762,7 @@ EOF
         sudo chown -R runner:docker vendor/oplus/sensor/kernel/oplus_virtual_sensor || true
         sudo chmod -R 755 vendor/oplus/sensor/kernel/oplus_virtual_sensor || true
         
-        sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOF'
+        sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig > /dev/null << 'EOT'
 # SPDX-License-Identifier: GPL-2.0
 #
 # OPLUS Camera Protect Virtual Sensor
@@ -784,7 +784,7 @@ config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
     Enable reporting mechanism for the camera protect feature.
     This option allows the system to report camera protection
     status and potential security events.
-EOF
+EOT
         
         sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig
         echo "Camera protect virtual sensor Kconfig created at: vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
@@ -792,7 +792,7 @@ EOF
         
         # 在vendor目录创建free_fallhub配置
         echo "在vendor目录创建free_fallhub配置..."
-        sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig > /dev/null << 'EOF'
+        sudo tee vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig > /dev/null << 'EOT'
 # SPDX-License-Identifier: GPL-2.0
 #
 # OPLUS Free Fall Virtual Sensor
@@ -814,7 +814,7 @@ config OPLUS_FEATURE_FREE_FALL_REPORT
     Enable reporting mechanism for the free fall feature.
     This option allows the system to report free fall
     detection events for analysis.
-EOF
+EOT
         
         sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig
         echo "Free fall virtual sensor Kconfig created at: vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig"
