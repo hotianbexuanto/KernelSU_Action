@@ -776,6 +776,67 @@ jobs:
         
         sudo chmod 644 drivers/input/touchscreen/oplus_touchscreen/Kconfig
 
+        # 创建 OPLUS 指纹驱动目录和配置
+        echo "Setting up OPLUS fingerprint drivers..."
+        sudo rm -rf drivers/input/oplus_fp_drivers || true
+        sudo mkdir -p drivers/input/oplus_fp_drivers || true
+        
+        # 设置权限
+        sudo chown -R runner:docker drivers/input/oplus_fp_drivers
+        sudo chmod -R 755 drivers/input/oplus_fp_drivers
+        
+        # 创建 Kconfig 文件
+        sudo tee drivers/input/oplus_fp_drivers/Kconfig > /dev/null << 'EOF'
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS fingerprint drivers configuration
+        #
+        
+        config OPLUS_FINGERPRINT
+          bool "OPLUS fingerprint driver support"
+          default n
+          help
+            Enable OPLUS fingerprint driver support.
+            This option provides support for fingerprint
+            sensors used in OPLUS devices.
+            
+        config OPLUS_FINGERPRINT_OPTICAL
+          bool "OPLUS optical fingerprint support"
+          default n
+          depends on OPLUS_FINGERPRINT
+          help
+            Enable optical fingerprint sensor support
+            for OPLUS devices with under-display
+            optical fingerprint sensors.
+            
+        config OPLUS_FINGERPRINT_CAPACITIVE
+          bool "OPLUS capacitive fingerprint support"
+          default n
+          depends on OPLUS_FINGERPRINT
+          help
+            Enable capacitive fingerprint sensor support
+            for OPLUS devices with side-mounted or
+            rear-mounted capacitive fingerprint sensors.
+            
+        config OPLUS_FINGERPRINT_GOODIX
+          bool "Goodix fingerprint sensor support"
+          default n
+          depends on OPLUS_FINGERPRINT
+          help
+            Enable Goodix fingerprint sensor support for
+            OPLUS devices using Goodix fingerprint sensors.
+            
+        config OPLUS_FINGERPRINT_FPC
+          bool "FPC fingerprint sensor support"
+          default n
+          depends on OPLUS_FINGERPRINT
+          help
+            Enable FPC (Fingerprint Cards) sensor support
+            for OPLUS devices using FPC fingerprint sensors.
+        EOF
+        
+        sudo chmod 644 drivers/input/oplus_fp_drivers/Kconfig
+
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
