@@ -257,20 +257,20 @@ jobs:
         sudo chmod -R 755 kernel/sched_assist
         
         sudo tee kernel/sched_assist/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS scheduler assist configuration
-#
-
-config OPLUS_FEATURE_SCHED_ASSIST
-  bool "OPLUS scheduler assist"
-  default n
-  help
-    Enable scheduler assist feature for OPLUS device.
-    Including ui thread scheduling optimization,
-    render thread scheduling optimization and
-    animation optimization.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS scheduler assist configuration
+        #
+        
+        config OPLUS_FEATURE_SCHED_ASSIST
+          bool "OPLUS scheduler assist"
+          default n
+          help
+            Enable scheduler assist feature for OPLUS device.
+            Including ui thread scheduling optimization,
+            render thread scheduling optimization and
+            animation optimization.
+        EOF
         
         sudo chmod 644 kernel/sched_assist/Kconfig
         
@@ -282,19 +282,19 @@ EOF
         sudo chmod -R 755 kernel/locking/klockopt
         
         sudo tee kernel/locking/klockopt/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS klockopt configuration
-#
-
-config OPLUS_FEATURE_KLOCKOPT
-  bool "OPLUS kernel lock optimization"
-  default n
-  help
-    Enable kernel lock optimization feature for OPLUS device.
-    This option provides optimizations for kernel locking
-    mechanisms to improve performance.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS klockopt configuration
+        #
+        
+        config OPLUS_FEATURE_KLOCKOPT
+          bool "OPLUS kernel lock optimization"
+          default n
+          help
+            Enable kernel lock optimization feature for OPLUS device.
+            This option provides optimizations for kernel locking
+            mechanisms to improve performance.
+        EOF
         
         sudo chmod 644 kernel/locking/klockopt/Kconfig
         
@@ -306,19 +306,19 @@ EOF
         sudo chmod -R 755 block/foreground_io_opt
         
         sudo tee block/foreground_io_opt/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS foreground I/O optimization configuration
-#
-
-config OPLUS_FEATURE_FG_IO_OPT
-  bool "OPLUS foreground I/O optimization"
-  default n
-  help
-    Enable foreground I/O optimization feature for OPLUS device.
-    This option provides optimizations for I/O operations
-    to improve foreground application performance.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS foreground I/O optimization configuration
+        #
+        
+        config OPLUS_FEATURE_FG_IO_OPT
+          bool "OPLUS foreground I/O optimization"
+          default n
+          help
+            Enable foreground I/O optimization feature for OPLUS device.
+            This option provides optimizations for I/O operations
+            to improve foreground application performance.
+        EOF
         
         sudo chmod 644 block/foreground_io_opt/Kconfig
         
@@ -330,19 +330,19 @@ EOF
         sudo chmod -R 755 mm/malloc_track
         
         sudo tee mm/malloc_track/Kconfig.compat > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS malloc track configuration
-#
-
-config OPLUS_FEATURE_MALLOC_TRACK
-  bool "OPLUS malloc tracking"
-  default n
-  help
-    Enable malloc tracking feature for OPLUS device.
-    This option provides memory allocation tracking
-    for debugging memory leaks and usage patterns.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS malloc track configuration
+        #
+        
+        config OPLUS_FEATURE_MALLOC_TRACK
+          bool "OPLUS malloc tracking"
+          default n
+          help
+            Enable malloc tracking feature for OPLUS device.
+            This option provides memory allocation tracking
+            for debugging memory leaks and usage patterns.
+        EOF
         
         sudo chmod 644 mm/malloc_track/Kconfig.compat
         
@@ -354,19 +354,19 @@ EOF
         sudo chmod -R 755 mm/task_mem
         
         sudo tee mm/task_mem/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS task memory configuration
-#
-
-config OPLUS_FEATURE_TASK_MEM
-  bool "OPLUS task memory tracking"
-  default n
-  help
-    Enable task memory tracking feature for OPLUS device.
-    This option provides per-task memory usage tracking
-    and analysis capabilities.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS task memory configuration
+        #
+        
+        config OPLUS_FEATURE_TASK_MEM
+          bool "OPLUS task memory tracking"
+          default n
+          help
+            Enable task memory tracking feature for OPLUS device.
+            This option provides per-task memory usage tracking
+            and analysis capabilities.
+        EOF
         
         sudo chmod 644 mm/task_mem/Kconfig
         
@@ -378,19 +378,19 @@ EOF
         sudo chmod -R 755 mm/multi_kswapd
         
         sudo tee mm/multi_kswapd/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS multi kswapd configuration
-#
-
-config OPLUS_FEATURE_MULTI_KSWAPD
-  bool "OPLUS multi kswapd support"
-  default n
-  help
-    Enable multiple kswapd threads support for OPLUS device.
-    This option allows running multiple kernel swap daemons
-    to improve memory reclaim performance.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS multi kswapd configuration
+        #
+        
+        config OPLUS_FEATURE_MULTI_KSWAPD
+          bool "OPLUS multi kswapd support"
+          default n
+          help
+            Enable multiple kswapd threads support for OPLUS device.
+            This option allows running multiple kernel swap daemons
+            to improve memory reclaim performance.
+        EOF
         
         sudo chmod 644 mm/multi_kswapd/Kconfig
         
@@ -402,46 +402,46 @@ EOF
         sudo chmod -R 755 mm/healthinfo
         
         sudo tee mm/healthinfo/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS healthinfo MM configuration
-#
-
-config OPLUS_HEALTHINFO
-  bool "OPLUS healthinfo memory management"
-  default n
-  help
-    Enable healthinfo memory management for OPLUS device.
-    This option provides memory health monitoring and
-    diagnostic features for the mm subsystem.
-    
-config OPLUS_MEM_MONITOR
-  bool "OPLUS memory monitor"
-  default n
-  depends on OPLUS_HEALTHINFO
-  help
-    Enable memory monitoring for OPLUS device.
-    This tracks detailed memory usage and
-    provides memory allocation statistics.
-    
-config OPLUS_MEMINFO_MULTI_MEMCG
-  bool "OPLUS multi memcg support"
-  default n
-  depends on OPLUS_HEALTHINFO
-  help
-    Enable multiple memory cgroup support.
-    This provides per-application memory usage
-    tracking and control.
-    
-config OPLUS_ALLOC_LARGE_MEMORY_MONITOR
-  bool "OPLUS large memory allocation monitor"
-  default n
-  depends on OPLUS_HEALTHINFO
-  help
-    Enable large memory allocation monitoring.
-    This tracks large memory allocations to
-    diagnose memory issues and fragmentation.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS healthinfo MM configuration
+        #
+        
+        config OPLUS_HEALTHINFO
+          bool "OPLUS healthinfo memory management"
+          default n
+          help
+            Enable healthinfo memory management for OPLUS device.
+            This option provides memory health monitoring and
+            diagnostic features for the mm subsystem.
+            
+        config OPLUS_MEM_MONITOR
+          bool "OPLUS memory monitor"
+          default n
+          depends on OPLUS_HEALTHINFO
+          help
+            Enable memory monitoring for OPLUS device.
+            This tracks detailed memory usage and
+            provides memory allocation statistics.
+            
+        config OPLUS_MEMINFO_MULTI_MEMCG
+          bool "OPLUS multi memcg support"
+          default n
+          depends on OPLUS_HEALTHINFO
+          help
+            Enable multiple memory cgroup support.
+            This provides per-application memory usage
+            tracking and control.
+            
+        config OPLUS_ALLOC_LARGE_MEMORY_MONITOR
+          bool "OPLUS large memory allocation monitor"
+          default n
+          depends on OPLUS_HEALTHINFO
+          help
+            Enable large memory allocation monitoring.
+            This tracks large memory allocations to
+            diagnose memory issues and fragmentation.
+        EOF
         
         sudo chmod 644 mm/healthinfo/Kconfig
         echo "MM healthinfo Kconfig created at: mm/healthinfo/Kconfig"
@@ -457,55 +457,55 @@ EOF
         # 创建 Kconfig 文件并显式输出日志
         echo "Creating healthinfo Kconfig file"
         sudo tee drivers/soc/oplus/healthinfo/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS healthinfo configuration
-#
-
-config OPLUS_FEATURE_HEALTHINFO
-  bool "OPLUS healthinfo support"
-  default n
-  help
-    Enable OPLUS healthinfo support.
-    This option provides system health monitoring
-    and diagnostics for performance analysis.
-    
-config OPLUS_FEATURE_HEALTHINFO_STANDBY
-  bool "OPLUS healthinfo standby monitor"
-  default n
-  depends on OPLUS_FEATURE_HEALTHINFO
-  help
-    Enable healthinfo standby monitoring.
-    This tracks system resource usage during
-    standby mode for power optimization.
-
-config OPLUS_FEATURE_HEALTHINFO_IO_MONITOR
-  bool "OPLUS healthinfo I/O monitor"
-  default n
-  depends on OPLUS_FEATURE_HEALTHINFO
-  help
-    Enable healthinfo I/O monitoring.
-    This tracks I/O operations and performance
-    for system diagnostics.
-    
-config OPLUS_FEATURE_HEALTHINFO_MEM_MONITOR
-  bool "OPLUS healthinfo memory monitor"
-  default n
-  depends on OPLUS_FEATURE_HEALTHINFO
-  help
-    Enable healthinfo memory monitoring.
-    This tracks memory usage patterns and
-    identifies potential memory issues.
-    
-config OPLUS_FEATURE_HEALTHINFO_UFS_MONITOR
-  bool "OPLUS healthinfo UFS monitor"
-  default n
-  depends on OPLUS_FEATURE_HEALTHINFO
-  help
-    Enable healthinfo UFS storage monitoring.
-    This tracks UFS storage performance and
-    health metrics for diagnostics.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS healthinfo configuration
+        #
+        
+        config OPLUS_FEATURE_HEALTHINFO
+          bool "OPLUS healthinfo support"
+          default n
+          help
+            Enable OPLUS healthinfo support.
+            This option provides system health monitoring
+            and diagnostics for performance analysis.
+            
+        config OPLUS_FEATURE_HEALTHINFO_STANDBY
+          bool "OPLUS healthinfo standby monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo standby monitoring.
+            This tracks system resource usage during
+            standby mode for power optimization.
+        
+        config OPLUS_FEATURE_HEALTHINFO_IO_MONITOR
+          bool "OPLUS healthinfo I/O monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo I/O monitoring.
+            This tracks I/O operations and performance
+            for system diagnostics.
+            
+        config OPLUS_FEATURE_HEALTHINFO_MEM_MONITOR
+          bool "OPLUS healthinfo memory monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo memory monitoring.
+            This tracks memory usage patterns and
+            identifies potential memory issues.
+            
+        config OPLUS_FEATURE_HEALTHINFO_UFS_MONITOR
+          bool "OPLUS healthinfo UFS monitor"
+          default n
+          depends on OPLUS_FEATURE_HEALTHINFO
+          help
+            Enable healthinfo UFS storage monitoring.
+            This tracks UFS storage performance and
+            health metrics for diagnostics.
+        EOF
         
         sudo chmod 644 drivers/soc/oplus/healthinfo/Kconfig
         echo "Healthinfo Kconfig file created at: drivers/soc/oplus/healthinfo/Kconfig"
@@ -526,17 +526,17 @@ EOF
           # 创建新的Kconfig文件
           echo "Creating new oplus Kconfig file with healthinfo reference"
           sudo tee drivers/soc/oplus/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS SoC drivers configuration
-#
-
-source "drivers/soc/oplus/healthinfo/Kconfig"
-source "drivers/soc/oplus/system/Kconfig"
-source "drivers/soc/oplus/svelte/Kconfig"
-source "drivers/soc/oplus/iomonitor/Kconfig"
-source "drivers/soc/oplus/lowmem_dbg/Kconfig"
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS SoC drivers configuration
+        #
+        
+        source "drivers/soc/oplus/healthinfo/Kconfig"
+        source "drivers/soc/oplus/system/Kconfig"
+        source "drivers/soc/oplus/svelte/Kconfig"
+        source "drivers/soc/oplus/iomonitor/Kconfig"
+        source "drivers/soc/oplus/lowmem_dbg/Kconfig"
+        EOF
           
           sudo chmod 644 drivers/soc/oplus/Kconfig
           echo "New oplus Kconfig created with healthinfo reference"
@@ -566,51 +566,51 @@ EOF
         sudo chmod -R 755 net/oplus_modules
         
         sudo tee net/oplus_modules/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# OPLUS network modules configuration
-#
-
-config OPLUS_FEATURE_NWPOWER
-  bool "OPLUS network power optimization"
-  default n
-  help
-    Enable network power optimization for OPLUS device.
-    This option provides optimizations for network power
-    consumption and battery life.
-    
-config OPLUS_FEATURE_WIFI_SMART_BW
-  bool "OPLUS WiFi smart bandwidth"
-  default n
-  help
-    Enable WiFi smart bandwidth for OPLUS device.
-    This option provides intelligent bandwidth management
-    for WiFi connections.
-
-config OPLUS_FEATURE_WIFI_SLA
-  bool "OPLUS WiFi SLA (Service Level Agreement)"
-  default n
-  help
-    Enable WiFi SLA for OPLUS device.
-    This option provides service level agreement features
-    for WiFi connections to maintain quality of service.
-    
-config OPLUS_FEATURE_DATA_EVAL
-  bool "OPLUS data evaluation"
-  default n
-  help
-    Enable data evaluation for OPLUS device.
-    This option provides data usage analysis and
-    optimization capabilities.
-    
-config OPLUS_FEATURE_WIFI_MTUDETECT
-  bool "OPLUS WiFi MTU detection"
-  default n
-  help
-    Enable WiFi MTU detection for OPLUS device.
-    This option provides automatic detection of the
-    maximum transmission unit for WiFi connections.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # OPLUS network modules configuration
+        #
+        
+        config OPLUS_FEATURE_NWPOWER
+          bool "OPLUS network power optimization"
+          default n
+          help
+            Enable network power optimization for OPLUS device.
+            This option provides optimizations for network power
+            consumption and battery life.
+            
+        config OPLUS_FEATURE_WIFI_SMART_BW
+          bool "OPLUS WiFi smart bandwidth"
+          default n
+          help
+            Enable WiFi smart bandwidth for OPLUS device.
+            This option provides intelligent bandwidth management
+            for WiFi connections.
+        
+        config OPLUS_FEATURE_WIFI_SLA
+          bool "OPLUS WiFi SLA (Service Level Agreement)"
+          default n
+          help
+            Enable WiFi SLA for OPLUS device.
+            This option provides service level agreement features
+            for WiFi connections to maintain quality of service.
+            
+        config OPLUS_FEATURE_DATA_EVAL
+          bool "OPLUS data evaluation"
+          default n
+          help
+            Enable data evaluation for OPLUS device.
+            This option provides data usage analysis and
+            optimization capabilities.
+            
+        config OPLUS_FEATURE_WIFI_MTUDETECT
+          bool "OPLUS WiFi MTU detection"
+          default n
+          help
+            Enable WiFi MTU detection for OPLUS device.
+            This option provides automatic detection of the
+            maximum transmission unit for WiFi connections.
+        EOF
         
         sudo chmod 644 net/oplus_modules/Kconfig
         echo "Net oplus_modules Kconfig created at: net/oplus_modules/Kconfig"
@@ -624,183 +624,81 @@ EOF
         sudo chmod -R 755 drivers/base/kernelFwUpdate
         
         sudo tee drivers/base/kernelFwUpdate/Kconfig > /dev/null << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-#
-# Kernel Firmware Update configuration
-#
-
-config OPLUS_FEATURE_KERNEL_FW_UPDATE
-  bool "OPLUS kernel firmware update"
-  default n
-  help
-    Enable kernel firmware update support for OPLUS device.
-    This option provides a mechanism to update device firmware
-    through the kernel.
-    
-config OPLUS_FEATURE_MODEM_FW_UPDATE
-  bool "OPLUS modem firmware update"
-  default n
-  depends on OPLUS_FEATURE_KERNEL_FW_UPDATE
-  help
-    Enable modem firmware update support for OPLUS device.
-    This option provides a mechanism to update modem firmware.
-    
-config OPLUS_FEATURE_SECURE_FW_UPDATE
-  bool "OPLUS secure firmware update"
-  default n
-  depends on OPLUS_FEATURE_KERNEL_FW_UPDATE
-  help
-    Enable secure firmware update support for OPLUS device.
-    This option provides secure update mechanism with
-    signature verification for firmware updates.
-EOF
+        # SPDX-License-Identifier: GPL-2.0
+        #
+        # Kernel Firmware Update configuration
+        #
+        
+        config OPLUS_FEATURE_KERNEL_FW_UPDATE
+          bool "OPLUS kernel firmware update"
+          default n
+          help
+            Enable kernel firmware update support for OPLUS device.
+            This option provides a mechanism to update device firmware
+            through the kernel.
+            
+        config OPLUS_FEATURE_MODEM_FW_UPDATE
+          bool "OPLUS modem firmware update"
+          default n
+          depends on OPLUS_FEATURE_KERNEL_FW_UPDATE
+          help
+            Enable modem firmware update support for OPLUS device.
+            This option provides a mechanism to update modem firmware.
+            
+        config OPLUS_FEATURE_SECURE_FW_UPDATE
+          bool "OPLUS secure firmware update"
+          default n
+          depends on OPLUS_FEATURE_KERNEL_FW_UPDATE
+          help
+            Enable secure firmware update support for OPLUS device.
+            This option provides secure update mechanism with
+            signature verification for firmware updates.
+        EOF
         
         sudo chmod 644 drivers/base/kernelFwUpdate/Kconfig
         echo "Kernel FW Update Kconfig created at: drivers/base/kernelFwUpdate/Kconfig"
         ls -la drivers/base/kernelFwUpdate/
         
-        # 处理相机保护传感器目录和Kconfig文件 - 使用符号链接检查方法
+        # 处理相机保护传感器目录和Kconfig文件
         echo "Setting up camera protect virtual sensor..."
         
-        # 定义传感器路径变量
-        SENSORS_BASE_DIR="drivers/misc/mediatek/sensors-1.0"
-        VIRTUAL_SENSOR_DIR="$SENSORS_BASE_DIR/oplus_virtual_sensor"
-        SENSORS_DIR="$VIRTUAL_SENSOR_DIR/sensors"
-        CAMERA_PROTECT_DIR="$SENSORS_DIR/camera_protecthub"
-        FREE_FALL_DIR="$SENSORS_DIR/free_fallhub"
-        VENDOR_BASE_DIR="vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors"
+        # 检查目录是否为符号链接并获取真实路径
+        echo "检查是否为符号链接..."
+        SENSOR_BASE_DIR="drivers/misc/mediatek/sensors-1.0"
+        SENSOR_VIRT_DIR="$SENSOR_BASE_DIR/oplus_virtual_sensor"
         
-        # 定义创建直接目录和文件的函数
-        create_direct_sensor_dirs() {
-          # 创建传感器目录结构
-          sudo mkdir -p "$VIRTUAL_SENSOR_DIR/sensors/camera_protecthub"
-          sudo mkdir -p "$VIRTUAL_SENSOR_DIR/sensors/free_fallhub"
-          
-          # 创建相机保护传感器配置文件
-          cat > "$VIRTUAL_SENSOR_DIR/sensors/camera_protecthub/Kconfig" << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-# OPLUS Camera Protect Virtual Sensor
-
-config OPLUS_FEATURE_CAMERA_PROTECT
-  bool "OPLUS camera protect virtual sensor"
-  default n
-  help
-    Enable camera protect virtual sensor for OPLUS device.
-
-config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
-  bool "OPLUS camera protect report"
-  default n
-  depends on OPLUS_FEATURE_CAMERA_PROTECT
-  help
-    Enable reporting mechanism for the camera protect feature.
-EOF
-          
-          # 创建自由落体传感器配置文件
-          cat > "$VIRTUAL_SENSOR_DIR/sensors/free_fallhub/Kconfig" << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-# OPLUS Free Fall Virtual Sensor
-
-config OPLUS_FEATURE_FREE_FALL
-  bool "OPLUS free fall virtual sensor"
-  default n
-  help
-    Enable free fall virtual sensor for OPLUS device.
-
-config OPLUS_FEATURE_FREE_FALL_REPORT
-  bool "OPLUS free fall report"
-  default n
-  depends on OPLUS_FEATURE_FREE_FALL
-  help
-    Enable reporting mechanism for the free fall feature.
-EOF
-          
-          # 设置文件权限
-          sudo chmod 644 "$VIRTUAL_SENSOR_DIR/sensors/camera_protecthub/Kconfig"
-          sudo chmod 644 "$VIRTUAL_SENSOR_DIR/sensors/free_fallhub/Kconfig"
-          
-          echo "直接在源码树中创建传感器配置文件完成"
-        }
+        # 确保基础目录存在
+        mkdir -p $SENSOR_BASE_DIR || echo "无法创建传感器基础目录"
         
-        # 首先检查基础目录是否存在，不存在则创建
-        if [ ! -d "$SENSORS_BASE_DIR" ]; then
-          sudo mkdir -p "$SENSORS_BASE_DIR"
-          echo "创建基础传感器目录：$SENSORS_BASE_DIR"
-        fi
-        
-        # 检查oplus_virtual_sensor是否为符号链接
-        if [ -L "$VIRTUAL_SENSOR_DIR" ]; then
-          echo "检测到 $VIRTUAL_SENSOR_DIR 是符号链接"
-          # 获取符号链接的真实目标
-          LINK_TARGET=$(readlink -f "$VIRTUAL_SENSOR_DIR")
-          echo "符号链接目标: $LINK_TARGET"
+        if [ -L "$SENSOR_VIRT_DIR" ]; then
+          echo "$SENSOR_VIRT_DIR 是符号链接"
+          # 获取符号链接的实际目标
+          REAL_PATH=$(readlink -f "$SENSOR_VIRT_DIR")
+          echo "符号链接实际指向: $REAL_PATH"
           
-          # 检查目标是否存在
-          if [ -d "$LINK_TARGET" ]; then
-            echo "符号链接目标目录存在，将在目标目录创建配置文件"
-            
-            # 在目标目录创建所需的子目录结构
-            sudo mkdir -p "$LINK_TARGET/sensors/camera_protecthub"
-            sudo mkdir -p "$LINK_TARGET/sensors/free_fallhub"
-            
-            # 创建相机保护传感器配置文件
-            cat > "$LINK_TARGET/sensors/camera_protecthub/Kconfig" << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-# OPLUS Camera Protect Virtual Sensor
-
-config OPLUS_FEATURE_CAMERA_PROTECT
-  bool "OPLUS camera protect virtual sensor"
-  default n
-  help
-    Enable camera protect virtual sensor for OPLUS device.
-
-config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
-  bool "OPLUS camera protect report"
-  default n
-  depends on OPLUS_FEATURE_CAMERA_PROTECT
-  help
-    Enable reporting mechanism for the camera protect feature.
-EOF
-            
-            # 创建自由落体传感器配置文件
-            cat > "$LINK_TARGET/sensors/free_fallhub/Kconfig" << 'EOF'
-# SPDX-License-Identifier: GPL-2.0
-# OPLUS Free Fall Virtual Sensor
-
-config OPLUS_FEATURE_FREE_FALL
-  bool "OPLUS free fall virtual sensor"
-  default n
-  help
-    Enable free fall virtual sensor for OPLUS device.
-
-config OPLUS_FEATURE_FREE_FALL_REPORT
-  bool "OPLUS free fall report"
-  default n
-  depends on OPLUS_FEATURE_FREE_FALL
-  help
-    Enable reporting mechanism for the free fall feature.
-EOF
-            
-            # 设置文件权限
-            sudo chmod 644 "$LINK_TARGET/sensors/camera_protecthub/Kconfig"
-            sudo chmod 644 "$LINK_TARGET/sensors/free_fallhub/Kconfig"
-            
-            echo "在符号链接目标目录创建配置文件完成"
+          if [ -d "$REAL_PATH" ]; then
+            echo "实际目标目录存在，将在其中创建配置文件"
+            TARGET_DIR="$REAL_PATH"
           else
-            echo "符号链接目标目录不存在，将创建直接目录结构"
-            create_direct_sensor_dirs
+            echo "符号链接目标不存在，创建目录及配置文件"
+            mkdir -p "$REAL_PATH/sensors/camera_protecthub" "$REAL_PATH/sensors/free_fallhub" || echo "无法创建符号链接目标目录"
+            TARGET_DIR="$REAL_PATH"
           fi
         else
-          echo "$VIRTUAL_SENSOR_DIR 不是符号链接，将创建直接目录结构"
-          create_direct_sensor_dirs
+          # 直接在原始路径创建
+          echo "不是符号链接，尝试直接创建目录结构"
+          if [ ! -d "$SENSOR_VIRT_DIR" ]; then
+            mkdir -p "$SENSOR_VIRT_DIR" || echo "无法创建传感器虚拟目录"
+          fi
+          mkdir -p "$SENSOR_VIRT_DIR/sensors/camera_protecthub" "$SENSOR_VIRT_DIR/sensors/free_fallhub" || echo "无法创建传感器子目录"
+          TARGET_DIR="$SENSOR_VIRT_DIR"
         fi
         
-        # 创建vendor目录，确保它无论如何都存在
-        sudo mkdir -p "$VENDOR_BASE_DIR/camera_protecthub"
-        sudo mkdir -p "$VENDOR_BASE_DIR/free_fallhub"
-        
-        # 创建vendor目录配置文件
-        cat > "$VENDOR_BASE_DIR/camera_protecthub/Kconfig" << 'EOF'
+        # 创建相机保护传感器Kconfig
+        echo "创建相机保护传感器Kconfig文件..."
+        sudo tee "$TARGET_DIR/sensors/camera_protecthub/Kconfig" > /dev/null << 'EOT'
 # SPDX-License-Identifier: GPL-2.0
+#
 # OPLUS Camera Protect Virtual Sensor
 
 config OPLUS_FEATURE_CAMERA_PROTECT
@@ -815,10 +713,13 @@ config OPLUS_FEATURE_CAMERA_PROTECT_REPORT
   depends on OPLUS_FEATURE_CAMERA_PROTECT
   help
     Enable reporting mechanism for the camera protect feature.
-EOF
+EOT
         
-        cat > "$VENDOR_BASE_DIR/free_fallhub/Kconfig" << 'EOF'
+        # 创建自由落体传感器Kconfig
+        echo "创建自由落体传感器Kconfig文件..."
+        sudo tee "$TARGET_DIR/sensors/free_fallhub/Kconfig" > /dev/null << 'EOT'
 # SPDX-License-Identifier: GPL-2.0
+#
 # OPLUS Free Fall Virtual Sensor
 
 config OPLUS_FEATURE_FREE_FALL
@@ -833,58 +734,58 @@ config OPLUS_FEATURE_FREE_FALL_REPORT
   depends on OPLUS_FEATURE_FREE_FALL
   help
     Enable reporting mechanism for the free fall feature.
-EOF
+EOT
         
-        # 设置文件权限
-        sudo chmod 644 "$VENDOR_BASE_DIR/camera_protecthub/Kconfig"
-        sudo chmod 644 "$VENDOR_BASE_DIR/free_fallhub/Kconfig"
-        
-        # 创建引用文件 - 确保目录层次结构正确
-        # 创建sensors的Kconfig
-        if [ ! -f "$SENSORS_DIR/Kconfig" ]; then
-          sudo mkdir -p "$SENSORS_DIR"
-          cat > "$SENSORS_DIR/Kconfig" << 'EOF'
+        # 创建传感器引用文件
+        echo "创建传感器引用Kconfig文件..."
+        sudo tee "$TARGET_DIR/sensors/Kconfig" > /dev/null << 'EOT'
 # Virtual sensor configuration
 source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig"
 source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/free_fallhub/Kconfig"
-EOF
-          sudo chmod 644 "$SENSORS_DIR/Kconfig"
-        fi
+EOT
         
-        # 创建oplus_virtual_sensor的Kconfig
-        if [ ! -f "$VIRTUAL_SENSOR_DIR/Kconfig" ]; then
-          sudo mkdir -p "$VIRTUAL_SENSOR_DIR"
-          cat > "$VIRTUAL_SENSOR_DIR/Kconfig" << 'EOF'
+        # 创建主虚拟传感器Kconfig
+        echo "创建主虚拟传感器Kconfig文件..."
+        sudo tee "$TARGET_DIR/Kconfig" > /dev/null << 'EOT'
 # Oplus virtual sensor configuration
 source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig"
-EOF
-          sudo chmod 644 "$VIRTUAL_SENSOR_DIR/Kconfig"
-        fi
+EOT
         
-        # 查看主传感器 Kconfig 文件
-        if [ -f "$SENSORS_BASE_DIR/Kconfig" ]; then
-          # 检查是否已包含oplus_virtual_sensor
-          if ! grep -q "oplus_virtual_sensor/Kconfig" "$SENSORS_BASE_DIR/Kconfig"; then
-            # 添加引用到现有文件
-            echo 'source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/sensors/Kconfig"' >> "$SENSORS_BASE_DIR/Kconfig"
+        # 设置权限
+        echo "设置权限..."
+        sudo chmod -R 755 $SENSOR_BASE_DIR || echo "无法设置目录权限"
+        sudo chmod 644 "$TARGET_DIR/sensors/camera_protecthub/Kconfig" || echo "无法设置相机保护传感器Kconfig权限"
+        sudo chmod 644 "$TARGET_DIR/sensors/free_fallhub/Kconfig" || echo "无法设置自由落体传感器Kconfig权限"
+        sudo chmod 644 "$TARGET_DIR/sensors/Kconfig" || echo "无法设置传感器引用Kconfig权限"
+        sudo chmod 644 "$TARGET_DIR/Kconfig" || echo "无法设置主虚拟传感器Kconfig权限"
+        
+        # 确保主传感器Kconfig引用了虚拟传感器
+        echo "确保主传感器Kconfig引用了虚拟传感器..."
+        MAIN_KCONFIG="$SENSOR_BASE_DIR/Kconfig"
+        if [ -f "$MAIN_KCONFIG" ]; then
+          if ! grep -q "oplus_virtual_sensor/Kconfig" "$MAIN_KCONFIG"; then
+            echo 'source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig"' >> "$MAIN_KCONFIG"
           fi
         else
-          # 创建新文件
-          cat > "$SENSORS_BASE_DIR/Kconfig" << 'EOF'
+          sudo tee "$MAIN_KCONFIG" > /dev/null << 'EOT'
 # MTK sensors configuration
 source "drivers/misc/mediatek/sensors-1.0/oplus_virtual_sensor/Kconfig"
-EOF
-          sudo chmod 644 "$SENSORS_BASE_DIR/Kconfig"
+EOT
+          sudo chmod 644 "$MAIN_KCONFIG"
         fi
         
-        echo "传感器配置文件设置完成"
-        # 输出目录列表和Kconfig文件内容
-        echo "传感器目录结构："
-        ls -la "$SENSORS_BASE_DIR"
-        echo "传感器Kconfig内容："
-        if [ -f "$SENSORS_BASE_DIR/Kconfig" ]; then
-          cat "$SENSORS_BASE_DIR/Kconfig"
-        fi
+        # 创建vendor目录中的对应文件
+        echo "创建vendor目录中的对应配置文件..."
+        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub
+        sudo mkdir -p vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub
+        sudo cp "$TARGET_DIR/sensors/camera_protecthub/Kconfig" vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/ || echo "无法复制文件到vendor目录"
+        sudo cp "$TARGET_DIR/sensors/free_fallhub/Kconfig" vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/ || echo "无法复制文件到vendor目录"
+        sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/camera_protecthub/Kconfig || echo "无法设置权限"
+        sudo chmod 644 vendor/oplus/sensor/kernel/oplus_virtual_sensor/sensors/free_fallhub/Kconfig || echo "无法设置权限"
+        
+        echo "检查配置文件是否创建成功..."
+        ls -la "$SENSOR_BASE_DIR/oplus_virtual_sensor" || echo "无法列出虚拟传感器目录"
+        cat "$MAIN_KCONFIG" || echo "无法显示主传感器Kconfig文件"
 
     - name: Build kernel
       run: |
