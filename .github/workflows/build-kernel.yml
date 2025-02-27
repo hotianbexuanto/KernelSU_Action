@@ -261,6 +261,9 @@ jobs:
         mkdir -p out/scripts/dtc
         touch out/scripts/dtc/dtc-lexer.lex.c
         echo '#include "dtc.h"' > out/scripts/dtc/dtc-lexer.lex.c
+        echo '#include <stdio.h>' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo '#include <string.h>' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
         echo 'typedef struct YYLTYPE {' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '    int first_line;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '    int first_column;' >> out/scripts/dtc/dtc-lexer.lex.c
@@ -268,7 +271,15 @@ jobs:
         echo '    int last_column;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '    char *filename;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '} YYLTYPE;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
         echo 'extern YYLTYPE yylloc;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern int yylex(void);' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern FILE *yyin;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern char *yytext;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern int yylineno;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'void yyerror(char const *s);' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'int yylex(void);' >> out/scripts/dtc/dtc-lexer.lex.c
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1 prepare scripts
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
