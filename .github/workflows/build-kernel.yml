@@ -258,6 +258,7 @@ jobs:
         fi
         cd kernel-4.14
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
+        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1 scripts_genhdr
         # Fix DTC compiler issue
         sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
