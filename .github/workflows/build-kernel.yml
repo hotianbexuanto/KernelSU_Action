@@ -265,7 +265,10 @@ jobs:
 
         # Fix DTC compiler issue after initial compilation
         if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
-            sed -i 's/\<YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
+            sed -i 's/\<YYLTYPE yylloc\>/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
+        fi
+        if [ -f "out/scripts/dtc/dtc-parser.tab.c" ]; then
+            sed -i 's/\<YYLTYPE yylloc\>/YYLTYPE yylloc/g' out/scripts/dtc/dtc-parser.tab.c
         fi
 
         # Main build
