@@ -265,14 +265,14 @@ jobs:
     - name: Check a kernel output files
       run: |
        cd $GITHUB_WORKSPACE/kernel_workspace
-       if [ -f android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} ]; then
+       if [ -f android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} ]; then
            echo "CHECK_FILE_IS_OK=true" >> $GITHUB_ENV
        else
            echo "Kernel output file is empty"
            exit 1
        fi
        if [ ${{ env.NEED_DTBO }} = true ]; then
-           if [ -f android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/dtbo.img ]; then
+           if [ -f android-kernel/out/arch/${{ env.ARCH }}/boot/dtbo.img ]; then
                echo "CHECK_DTBO_IS_OK=true" >> $GITHUB_ENV
            else
                echo "DTBO image is empty"
@@ -288,9 +288,9 @@ jobs:
         sed -i 's/do.devicecheck=1/do.devicecheck=0/g' AnyKernel3/anykernel.sh
         sed -i 's!BLOCK=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!BLOCK=auto;!g' AnyKernel3/anykernel.sh
         sed -i 's/IS_SLOT_DEVICE=0;/is_slot_device=auto;/g' AnyKernel3/anykernel.sh
-        cp android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} AnyKernel3/
+        cp android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} AnyKernel3/
         if [ ${{ env.CHECK_DTBO_IS_OK }} = true ]; then
-            cp android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/dtbo.img AnyKernel3/
+            cp android-kernel/out/arch/${{ env.ARCH }}/boot/dtbo.img AnyKernel3/
         fi
         rm -rf AnyKernel3/.git* AnyKernel3/README.md
 
@@ -311,9 +311,9 @@ jobs:
             mkdir AnyKernel3
             unzip AnyKernel3.zip -d AnyKernel3/
         fi
-        cp android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} AnyKernel3/
+        cp android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} AnyKernel3/
         if [ ${{ env.CHECK_DTBO_IS_OK }} = true ]; then
-            cp android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/dtbo.img AnyKernel3/
+            cp android-kernel/out/arch/${{ env.ARCH }}/boot/dtbo.img AnyKernel3/
         fi
         rm -rf AnyKernel3/.git* AnyKernel3/README.md
 
@@ -322,7 +322,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         tools/unpack_bootimg.py --boot_img boot-source.img
-        cp android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} out/kernel
+        cp android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} out/kernel
         tools/mkbootimg.py ${{ env.FORMAT_MKBOOTING }} -o boot.img
         if [ -f boot.img ]; then
             echo "MAKE_BOOT_IMAGE_IS_OK=true" >> $GITHUB_ENV
@@ -336,7 +336,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.KERNEL_IMAGE_NAME }}${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
-        path: kernel_workspace/android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }}
+        path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }}
 
     - name: Upload AnyKernel3
       if: env.CHECK_FILE_IS_OK == 'true'
@@ -350,7 +350,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dtbo-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
-        path: kernel_workspace/android-kernel/out/kernel-4.14/arch/${{ env.ARCH }}/boot/dtbo.img
+        path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/dtbo.img
 
     - name: Upload boot image
       if: env.MAKE_BOOT_IMAGE_IS_OK == 'true'
