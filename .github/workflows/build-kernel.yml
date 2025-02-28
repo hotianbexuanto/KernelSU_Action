@@ -261,29 +261,9 @@ jobs:
         mkdir -p out/scripts/dtc
         touch out/scripts/dtc/dtc-lexer.lex.c
 
-        # Fix oppo_phoenix.h include path in multiple files
-        for file in init/main.c kernel/panic.c; do
-            sed -i 's|#include "../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h"|#include "../../drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|' $file
-        done
-
-        # Create temporary header for missing definitions
-        mkdir -p include/linux/oppo
-        echo "#ifndef _LINUX_OPPO_RW_STATS_H" > include/linux/oppo/rw_stats.h
-        echo "#define _LINUX_OPPO_RW_STATS_H" >> include/linux/oppo/rw_stats.h
-        echo "" >> include/linux/oppo/rw_stats.h
-        echo "enum rw_type {" >> include/linux/oppo/rw_stats.h
-        echo "    KERNEL_READ," >> include/linux/oppo/rw_stats.h
-        echo "    KERNEL_WRITE," >> include/linux/oppo/rw_stats.h
-        echo "    USER_READ," >> include/linux/oppo/rw_stats.h
-        echo "    USER_WRITE" >> include/linux/oppo/rw_stats.h
-        echo "};" >> include/linux/oppo/rw_stats.h
-        echo "" >> include/linux/oppo/rw_stats.h
-        echo "static inline void put_rw_bytes(enum rw_type type, struct file *file, ssize_t bytes) { }" >> include/linux/oppo/rw_stats.h
-        echo "" >> include/linux/oppo/rw_stats.h
-        echo "#endif /* _LINUX_OPPO_RW_STATS_H */" >> include/linux/oppo/rw_stats.h
-
-        # Add include to read_write.c
-        sed -i '1i#include <linux/oppo/rw_stats.h>' fs/read_write.c
+        # Fix oppo_phoenix.h include path in all files
+        find . -type f -exec sed -i 's|#include "[./]*vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h"|#include "drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|g' {} +
+        find . -type f -exec sed -i 's|#include <[./]*vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h>|#include "drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|g' {} +
 
         echo '#include "dtc.h"' > out/scripts/dtc/dtc-lexer.lex.c
         echo '#include <stdio.h>' >> out/scripts/dtc/dtc-lexer.lex.c
