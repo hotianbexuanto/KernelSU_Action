@@ -264,8 +264,8 @@ jobs:
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
 
         # Fix DTC compiler issue after initial compilation
-        if [ -f "out/scripts/dtc/dtc-parser.tab.c" ]; then
-            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-parser.tab.c
+        if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
+            sed -i 's/\<YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
         fi
 
         # Main build
