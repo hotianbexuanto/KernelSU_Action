@@ -273,12 +273,13 @@ jobs:
         echo '} YYLTYPE;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '' >> out/scripts/dtc/dtc-lexer.lex.c
         echo 'YYLTYPE yylloc;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'int yylex(void) { return 0; }' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'FILE *yyin;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'char *yytext;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'int yylineno;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'FILE *yyin = NULL;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'char *yytext = "";' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'int yylineno = 0;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'void yyerror(char const *s) { }' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'void yyerror(char const *s) { fprintf(stderr, "%s\n", s); }' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'int yylex(void) { return 0; }' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'int yywrap(void) { return 1; }' >> out/scripts/dtc/dtc-lexer.lex.c
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1 prepare scripts
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
