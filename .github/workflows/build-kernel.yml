@@ -272,21 +272,12 @@ jobs:
         echo '    char *filename;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '} YYLTYPE;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'YYLTYPE yylloc;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'FILE *yyin = NULL;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'char *yytext = "";' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'int yylineno = 0;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'void yyerror(char const *s) { }' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'int yylex(void) {' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    static int initialized = 0;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    if (!initialized) {' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '        yyin = stdin;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '        initialized = 1;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    }' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    return 0;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '}' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern YYLTYPE yylloc;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern FILE *yyin;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern char *yytext;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern int yylineno;' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern void yyerror(char const *s);' >> out/scripts/dtc/dtc-lexer.lex.c
+        echo 'extern int yylex(void);' >> out/scripts/dtc/dtc-lexer.lex.c
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1 prepare scripts
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
