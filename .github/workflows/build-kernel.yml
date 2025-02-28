@@ -264,6 +264,9 @@ jobs:
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
             sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
         fi
+        if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
+            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-parser.tab.c
+        fi
 
         # First generate the necessary files and build
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
