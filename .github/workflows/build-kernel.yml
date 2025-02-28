@@ -261,7 +261,7 @@ jobs:
         sudo update-alternatives --set python /usr/bin/python2
 
         # Fix DTC compiler issue in source before any compilation
-        sed -i 's/\<YYLTYPE yylloc\>/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.l
+        sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-parser.tab.c
 
         # First generate the necessary files
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
