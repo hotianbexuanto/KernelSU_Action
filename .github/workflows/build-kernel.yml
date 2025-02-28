@@ -259,16 +259,17 @@ jobs:
         # Set Python 2 as the default Python for the build
         sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
         sudo update-alternatives --set python /usr/bin/python2
-        # Fix DTC compiler issue before any make command
-        sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c || true
-        # First run to generate necessary files
-        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }} || true
-        # Fix DTC compiler issue in output directory if file exists
-        if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
-          sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
-        fi
-        # Main build
+
+        # First generate the necessary files
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
+
+        # Fix DTC compiler issue after files are generated
+        if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
+          sed -i 's/\<YYLTYPE yylloc\>/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
+        fi
+
+        # Main build
+        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
