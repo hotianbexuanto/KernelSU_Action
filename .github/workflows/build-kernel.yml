@@ -261,9 +261,8 @@ jobs:
         mkdir -p out/scripts/dtc
         touch out/scripts/dtc/dtc-lexer.lex.c
 
-        # Fix oppo_phoenix.h path issue
-        mkdir -p ../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
-        cp drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h ../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
+        # Fix oppo_phoenix.h include path
+        sed -i 's|#include "../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h"|#include "../../drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|' init/main.c
 
         echo '#include "dtc.h"' > out/scripts/dtc/dtc-lexer.lex.c
         echo '#include <stdio.h>' >> out/scripts/dtc/dtc-lexer.lex.c
