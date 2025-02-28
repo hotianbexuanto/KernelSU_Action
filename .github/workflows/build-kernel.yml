@@ -260,6 +260,11 @@ jobs:
         # Fix DTC compiler issue first
         mkdir -p out/scripts/dtc
         touch out/scripts/dtc/dtc-lexer.lex.c
+
+        # Fix oppo_phoenix.h path issue
+        mkdir -p ../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
+        cp drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h ../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
+
         echo '#include "dtc.h"' > out/scripts/dtc/dtc-lexer.lex.c
         echo '#include <stdio.h>' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '#include <string.h>' >> out/scripts/dtc/dtc-lexer.lex.c
@@ -283,10 +288,6 @@ jobs:
         echo '    if (!yyin) yyin = stdin;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '    return 0;' >> out/scripts/dtc/dtc-lexer.lex.c
         echo '}' >> out/scripts/dtc/dtc-lexer.lex.c
-
-        # Fix oppo_phoenix.h include path
-        sed -i 's|"../../../../../vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h"|"drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|g' init/main.c
-
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1 prepare scripts
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
