@@ -260,24 +260,16 @@ jobs:
         sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
         sudo update-alternatives --set python /usr/bin/python2
 
-        # First generate the necessary files
-        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
+        # Fix DTC compiler issue before compilation
+        if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
+            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
+        fi
 
-        # Fix DTC compiler issue after initial compilation
-        if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
-            sed -i 's/\<YYLTYPE yylloc\>/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
-        fi
-        if [ -f "out/scripts/dtc/dtc-parser.tab.c" ]; then
-            sed -i 's/\<YYLTYPE yylloc\>/YYLTYPE yylloc/g' out/scripts/dtc/dtc-parser.tab.c
-        fi
+        # First generate the necessary files and build
+        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
 
         # Main build
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
-        if [ ${{ env.ENABLE_CCACHE }} = true ]; then
-            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
-        else
-            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
-        fi
         # Restore Python 3 as default if needed
         sudo update-alternatives --auto python
 
