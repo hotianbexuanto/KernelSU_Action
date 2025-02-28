@@ -89,7 +89,6 @@ jobs:
         echo "DEVICE=$(echo ${{ env.KERNEL_CONFIG }} | sed 's!vendor/!!;s/_defconfig//;s/_user//;s/-perf//')" >> $GITHUB_ENV
         sudo apt-get update
         sudo apt-get install git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
-        sudo ln -sf /usr/bin/python2 /usr/bin/python
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
     - name: Download Clang-aosp
@@ -213,30 +212,30 @@ jobs:
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         if [ ${{ env.APPLY_KSU_PATCH }} = true ]; then
             bash $GITHUB_WORKSPACE/patches/patches.sh
-            if grep -q "CONFIG_KSU" kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}; then
-                sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/g' kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-                sed -i 's/CONFIG_KSU=n/CONFIG_KSU=y/g' kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            if grep -q "CONFIG_KSU" arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}; then
+                sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/g' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+                sed -i 's/CONFIG_KSU=n/CONFIG_KSU=y/g' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             else
-                echo "CONFIG_KSU=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+                echo "CONFIG_KSU=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             fi
         fi
         if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.APPLY_KSU_PATCH }} != true ]; then
-            echo "CONFIG_MODULES=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-            echo "CONFIG_KPROBES=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-            echo "CONFIG_HAVE_KPROBES=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-            echo "CONFIG_KPROBE_EVENTS=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_MODULES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_KPROBES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_HAVE_KPROBES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_KPROBE_EVENTS=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
         if [ ${{ env.ADD_OVERLAYFS_CONFIG }} = true ]; then
-            echo "CONFIG_OVERLAY_FS=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_OVERLAY_FS=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
         if [ ${{ env.DISABLE-LTO }} = true ]; then
-            sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-            sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-            sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-            echo "CONFIG_LTO_NONE=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            sed -i 's/CONFIG_LTO=y/CONFIG_LTO=n/' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            sed -i 's/CONFIG_LTO_CLANG=y/CONFIG_LTO_CLANG=n/' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            sed -i 's/CONFIG_THINLTO=y/CONFIG_THINLTO=n/' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_LTO_NONE=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
         if [ ${{ env.DISABLE_CC_WERROR }} = true ]; then
-            echo "CONFIG_CC_WERROR=n" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+            echo "CONFIG_CC_WERROR=n" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
 
     - name: Setup ccache
@@ -256,44 +255,11 @@ jobs:
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
-        cd kernel-4.14
-        # Fix DTC compiler issue first
-        mkdir -p out/scripts/dtc
-        touch out/scripts/dtc/dtc-lexer.lex.c
-
-        # Fix oppo_phoenix.h include path in all files
-        find . -type f -exec sed -i 's|#include "[./]*vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h"|#include "drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|g' {} +
-        find . -type f -exec sed -i 's|#include <[./]*vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/oppo_phoenix.h>|#include "drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h"|g' {} +
-
-        echo '#include "dtc.h"' > out/scripts/dtc/dtc-lexer.lex.c
-        echo '#include <stdio.h>' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '#include <string.h>' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'typedef struct YYLTYPE {' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    int first_line;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    int first_column;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    int last_line;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    int last_column;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    char *filename;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '} YYLTYPE;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'YYLTYPE yylloc __attribute__((weak));' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'FILE *yyin __attribute__((weak)) = NULL;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'char *yytext __attribute__((weak)) = "";' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo 'int yylineno __attribute__((weak)) = 0;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '__attribute__((weak)) void yyerror(char const *s) { }' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '__attribute__((weak)) int yylex(void) {' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    if (!yyin) yyin = stdin;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '    return 0;' >> out/scripts/dtc/dtc-lexer.lex.c
-        echo '}' >> out/scripts/dtc/dtc-lexer.lex.c
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
-        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1 prepare scripts
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
-            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1
+            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
-            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} YACC_HACK=1
+            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         fi
 
     - name: Check a kernel output files
@@ -384,7 +350,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dtbo-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
-        path: kernel_workspace/android-kernel/out/kernel-4.14/${{ env.ARCH }}/boot/dtbo.img
+        path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/dtbo.img
 
     - name: Upload boot image
       if: env.MAKE_BOOT_IMAGE_IS_OK == 'true'
