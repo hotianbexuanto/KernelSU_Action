@@ -223,16 +223,16 @@ jobs:
         # Fix DTC compiler issue
         cd kernel-4.14
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            # Remove YYLTYPE yylloc declaration from dtc-lexer.lex.c
+            # Remove all instances of yylloc from lexer
             sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
+            # Add extern declaration at the top
+            sed -i '1i\extern YYLTYPE yylloc;' scripts/dtc/dtc-lexer.lex.c
         fi
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            # Ensure yylloc is properly defined in dtc-parser.tab.c
-            sed -i 's/^YYLTYPE yylloc;/YYLTYPE yylloc = {0};/' scripts/dtc/dtc-parser.tab.c
-            # Add extern declaration at the top if not present
-            if ! grep -q "extern.*YYLTYPE.*yylloc" scripts/dtc/dtc-parser.tab.c; then
-                sed -i '1i\extern YYLTYPE yylloc;' scripts/dtc/dtc-parser.tab.c
-            fi
+            # Define yylloc only in parser
+            sed -i 's/YYLTYPE yylloc;/YYLTYPE yylloc = {0};/g' scripts/dtc/dtc-parser.tab.c
+            # Remove any other declarations
+            sed -i '/extern.*YYLTYPE.*yylloc/d' scripts/dtc/dtc-parser.tab.c
         fi
 
         if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.APPLY_KSU_PATCH }} != true ]; then
