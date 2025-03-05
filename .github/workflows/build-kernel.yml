@@ -223,15 +223,15 @@ jobs:
         # Fix DTC compiler issue
         cd kernel-4.14
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            # Remove all yylloc related code from lexer
-            sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
-            sed -i '/extern.*YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
+            # Remove YYLTYPE yylloc from dtc-lexer.lex.c
+            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
         fi
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            # Remove all yylloc related code from parser
-            sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-parser.tab.c
-            # Add special declaration at the top
-            sed -i '1i\YYLTYPE yylloc;' scripts/dtc/dtc-parser.tab.c
+            # Ensure yylloc is properly defined in dtc-parser.tab.c
+            if ! grep -q "YYLTYPE yylloc;" scripts/dtc/dtc-parser.tab.c; then
+                # Only add if not already present
+                echo "YYLTYPE yylloc;" >> scripts/dtc/dtc-parser.tab.c
+            fi
         fi
 
         # Add special compile flags for DTC
