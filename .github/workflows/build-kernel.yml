@@ -222,20 +222,26 @@ jobs:
 
         # Fix DTC compiler issue
         cd kernel-4.14
+        
+        # Fix DTC compiler issue by removing yylloc completely
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            # Remove YYLTYPE yylloc from dtc-lexer.lex.c
-            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
+            # Remove YYLTYPE yylloc completely from lexer
+            sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
+            sed -i '/extern.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
         fi
+        
+        # Modify dtc-parser.tab.c
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            # Ensure yylloc is properly defined in dtc-parser.tab.c
-            if ! grep -q "YYLTYPE yylloc;" scripts/dtc/dtc-parser.tab.c; then
-                # Only add if not already present
-                echo "YYLTYPE yylloc;" >> scripts/dtc/dtc-parser.tab.c
-            fi
+            # Define yylloc only in parser with static to limit scope
+            sed -i 's/YYLTYPE yylloc/static YYLTYPE yylloc/g' scripts/dtc/dtc-parser.tab.c
+            # Remove any extern declarations
+            sed -i '/extern.*yylloc/d' scripts/dtc/dtc-parser.tab.c
         fi
 
         # Add special compile flags for DTC
-        export DTC_FLAGS="-Wno-error"
+        export DTC_FLAGS="-Wno-error -fcommon"
+        export HOSTCFLAGS="-fcommon"
+        export YACC="yacc -Wno-error -Wno-unused"
 
         if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.APPLY_KSU_PATCH }} != true ]; then
             echo "CONFIG_MODULES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
