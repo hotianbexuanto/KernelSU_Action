@@ -223,11 +223,14 @@ jobs:
         # Fix DTC compiler issue
         cd kernel-4.14
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            sed -i '/YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
+            # Add extern declaration at the top of the file
+            sed -i '1i\extern YYLTYPE yylloc;' scripts/dtc/dtc-lexer.lex.c
+            # Remove the original declaration
+            sed -i '/^YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
         fi
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            sed -i 's/^YYLTYPE yylloc;/extern YYLTYPE yylloc;/' scripts/dtc/dtc-parser.tab.c
-            sed -i 's/^YYLTYPE yylloc$/extern YYLTYPE yylloc/' scripts/dtc/dtc-parser.tab.c
+            # Define yylloc in dtc-parser.tab.c
+            sed -i 's/^YYLTYPE yylloc;/YYLTYPE yylloc = {0};/' scripts/dtc/dtc-parser.tab.c
         fi
         cd ..
 
@@ -274,11 +277,14 @@ jobs:
 
         # Fix DTC compiler issue before compilation
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            sed -i '/YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
+            # Add extern declaration at the top of the file
+            sed -i '1i\extern YYLTYPE yylloc;' scripts/dtc/dtc-lexer.lex.c
+            # Remove the original declaration
+            sed -i '/^YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
         fi
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            sed -i 's/^YYLTYPE yylloc;/extern YYLTYPE yylloc;/' scripts/dtc/dtc-parser.tab.c
-            sed -i 's/^YYLTYPE yylloc$/extern YYLTYPE yylloc/' scripts/dtc/dtc-parser.tab.c
+            # Define yylloc in dtc-parser.tab.c
+            sed -i 's/^YYLTYPE yylloc;/YYLTYPE yylloc = {0};/' scripts/dtc/dtc-parser.tab.c
         fi
 
         # First generate the necessary files and build
