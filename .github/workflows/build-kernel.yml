@@ -219,6 +219,12 @@ jobs:
                 echo "CONFIG_KSU=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             fi
         fi
+
+        # Apply DTC fix patch
+        cd kernel-4.14
+        patch -p1 < $GITHUB_WORKSPACE/patches/dtc-fix.patch
+        cd ..
+
         if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.APPLY_KSU_PATCH }} != true ]; then
             echo "CONFIG_MODULES=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             echo "CONFIG_KPROBES=y" >> kernel-4.14/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
