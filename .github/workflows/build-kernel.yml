@@ -226,7 +226,8 @@ jobs:
             sed -i '/YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
         fi
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            sed -i 's/^YYLTYPE yylloc/YYLTYPE yylloc = {0}/g' scripts/dtc/dtc-parser.tab.c
+            sed -i 's/^YYLTYPE yylloc;/extern YYLTYPE yylloc;/' scripts/dtc/dtc-parser.tab.c
+            sed -i 's/^YYLTYPE yylloc$/extern YYLTYPE yylloc/' scripts/dtc/dtc-parser.tab.c
         fi
         cd ..
 
@@ -276,7 +277,8 @@ jobs:
             sed -i '/YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
         fi
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            sed -i 's/^YYLTYPE yylloc/YYLTYPE yylloc = {0}/g' scripts/dtc/dtc-parser.tab.c
+            sed -i 's/^YYLTYPE yylloc;/extern YYLTYPE yylloc;/' scripts/dtc/dtc-parser.tab.c
+            sed -i 's/^YYLTYPE yylloc$/extern YYLTYPE yylloc/' scripts/dtc/dtc-parser.tab.c
         fi
 
         # First generate the necessary files and build
