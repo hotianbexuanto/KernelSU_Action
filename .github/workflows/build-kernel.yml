@@ -285,26 +285,19 @@ jobs:
         sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
         sudo update-alternatives --set python /usr/bin/python2
 
-        # Fix DTC compiler issue - new approach
+        # Fix DTC compiler issue - simplified approach
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            # Remove the problematic YYLTYPE yylloc definition
-            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
-            # Remove any other declarations of yylloc
-            sed -i '/^YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
-        fi
-        
-        if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            # Ensure yylloc is properly declared in the parser
-            if ! grep -q "YYLTYPE yylloc" scripts/dtc/dtc-parser.tab.c; then
-                sed -i '1i\YYLTYPE yylloc;' scripts/dtc/dtc-parser.tab.c
-            fi
+            # Simply remove the YYLTYPE yylloc definition from dtc-lexer.lex.c
+            sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
         fi
 
         # Add special compile flags
-        export DTC_FLAGS="-Wno-error -fcommon"
-        export HOSTCFLAGS="-fcommon"
+        export DTC_FLAGS="-Wno-error"
+        export HOSTCFLAGS="-Wno-error -fcommon"
         export YACC="yacc -Wno-error -Wno-unused"
-        export HOSTLDFLAGS="-fuse-ld=lld -z muldefs"
+        export HOSTLDFLAGS="-fuse-ld=lld"
+        export LLVM=1
+        export LLVM_IAS=1
         
         # First generate the necessary files and build
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
