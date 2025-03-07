@@ -285,27 +285,26 @@ jobs:
         sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
         sudo update-alternatives --set python /usr/bin/python2
 
-        # Fix DTC compiler issue - more comprehensive fix
+        # Fix DTC compiler issue - new approach
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-            # Remove YYLTYPE yylloc completely from lexer
-            sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
-            sed -i '/extern.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
-            # Add static keyword to limit scope
-            sed -i 's/YYLTYPE yylloc/static YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
+            # Remove the problematic YYLTYPE yylloc definition
+            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
+            # Remove any other declarations of yylloc
+            sed -i '/^YYLTYPE yylloc;/d' scripts/dtc/dtc-lexer.lex.c
         fi
         
         if [ -f "scripts/dtc/dtc-parser.tab.c" ]; then
-            # Make yylloc static and initialize it
-            sed -i 's/YYLTYPE yylloc/static YYLTYPE yylloc = {0}/g' scripts/dtc/dtc-parser.tab.c
-            # Remove any existing extern declarations
-            sed -i '/extern.*yylloc/d' scripts/dtc/dtc-parser.tab.c
+            # Ensure yylloc is properly declared in the parser
+            if ! grep -q "YYLTYPE yylloc" scripts/dtc/dtc-parser.tab.c; then
+                sed -i '1i\YYLTYPE yylloc;' scripts/dtc/dtc-parser.tab.c
+            fi
         fi
 
         # Add special compile flags
         export DTC_FLAGS="-Wno-error -fcommon"
         export HOSTCFLAGS="-fcommon"
         export YACC="yacc -Wno-error -Wno-unused"
-        export HOSTLDFLAGS="-fuse-ld=lld"
+        export HOSTLDFLAGS="-fuse-ld=lld -z muldefs"
         
         # First generate the necessary files and build
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
