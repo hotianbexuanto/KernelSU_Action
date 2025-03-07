@@ -223,7 +223,7 @@ jobs:
         # Fix DTC compiler issue
         cd kernel-4.14
         
-        # Fix DTC compiler issue by removing yylloc completely
+        # Fix DTC compiler issue
         if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
             # Remove YYLTYPE yylloc completely from lexer
             sed -i '/YYLTYPE.*yylloc/d' scripts/dtc/dtc-lexer.lex.c
