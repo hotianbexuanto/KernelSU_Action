@@ -270,12 +270,12 @@ jobs:
         # 首先生成配置
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
-        # 等待 dtc-lexer.lex.c 生成后再修改
-        ls
-        while [ ! -f "out/scripts/dtc/dtc-lexer.lex.c" ]; do sleep 1; done
-        sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
+        # 修改 scripts/dtc/dtc-lexer.lex.c 文件
+        if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
+          sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
+        fi
         
-        # 继续编译
+        # 开始主编译过程
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
