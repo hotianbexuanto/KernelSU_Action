@@ -246,16 +246,16 @@ jobs:
         key: build-kernel-${{ env.DEVICE }}${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}
         max-size: 2G
 
-    - name: Set up Python 2.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: '2.7'
+    - name: Install Python 2
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python2
 
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
-        sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
-        sudo update-alternatives --set python /usr/bin/python2.7
+        # 设置 python2 为默认 python
+        sudo ln -sf /usr/bin/python2 /usr/bin/python
         
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
