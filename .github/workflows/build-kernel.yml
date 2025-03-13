@@ -269,12 +269,22 @@ jobs:
         export HOSTCFLAGS="-fcommon"
         export CFLAGS="-fcommon"
         
-        # 修复 DTC 编译器源码中的 yylloc 重定义问题
-        DTC_SOURCE="scripts/dtc/dtc-lexer.lex.c"
+        # 第一次编译生成文件
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
-        if [ -f "out/$DTC_SOURCE" ]; then
-          sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' "out/$DTC_SOURCE"
+        
+        # 修复 DTC 编译器源码中的 yylloc 重定义问题
+        if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
+          sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
         fi
+        
+        # 修复 dtc-parser.tab.c 中的定义
+        if [ -f "out/scripts/dtc/dtc-parser.tab.c" ]; then
+          sed -i 's/YYLTYPE yylloc/YYLTYPE yylloc/g' out/scripts/dtc/dtc-parser.tab.c
+        fi
+        
+        # 清理并重新编译
+        make clean O=out
+        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
