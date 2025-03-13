@@ -271,7 +271,8 @@ jobs:
         sudo ln -sf /usr/bin/python2 /usr/bin/python
         
         # 应用编译修复补丁
-        patch -p1 < $GITHUB_WORKSPACE/patches/fix_compilation.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/fix_read_write.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/fix_rmap.patch
         
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
