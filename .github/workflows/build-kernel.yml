@@ -271,6 +271,7 @@ jobs:
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
         # 等待 dtc-lexer.lex.c 生成后再修改
+        ls
         while [ ! -f "out/scripts/dtc/dtc-lexer.lex.c" ]; do sleep 1; done
         sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
         
