@@ -94,6 +94,12 @@ jobs:
         sudo update-alternatives --set gcc /usr/bin/gcc-9
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
+    - name: Fix Phoenix header path
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
+        mkdir -p vendor/oppo/oppo_phoenix/kernel/oppo_phoenix
+        cp drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
+
     - name: Download Clang-aosp
       if: env.USE_CUSTOM_CLANG != 'true'
       run: |
