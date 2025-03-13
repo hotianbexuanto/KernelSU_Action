@@ -259,8 +259,6 @@ jobs:
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
         sudo ln -sf /usr/bin/python2 /usr/bin/python
         
-        sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' $(find . -type f -name "dtc-lexer.lex.c")
-        
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
         export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
@@ -268,7 +266,15 @@ jobs:
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
+        
+        # 首先生成配置
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
+        
+        # 等待 dtc-lexer.lex.c 生成后再修改
+        while [ ! -f "out/scripts/dtc/dtc-lexer.lex.c" ]; do sleep 1; done
+        sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
+        
+        # 继续编译
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
