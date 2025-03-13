@@ -209,8 +209,10 @@ jobs:
 
     - name: Setup Configuration for Kernel
       run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace
         ls
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        mv kernel-4.14 android-kernel
+        cd android-kernel
         if [ ${{ env.APPLY_KSU_PATCH }} = true ]; then
             bash $GITHUB_WORKSPACE/patches/patches.sh
             if grep -q "CONFIG_KSU" arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}; then
