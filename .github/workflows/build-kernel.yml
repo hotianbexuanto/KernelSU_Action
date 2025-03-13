@@ -209,6 +209,7 @@ jobs:
 
     - name: Setup Configuration for Kernel
       run: |
+        ls
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         if [ ${{ env.APPLY_KSU_PATCH }} = true ]; then
             bash $GITHUB_WORKSPACE/patches/patches.sh
