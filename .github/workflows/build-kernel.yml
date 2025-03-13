@@ -89,6 +89,9 @@ jobs:
         echo "DEVICE=$(echo ${{ env.KERNEL_CONFIG }} | sed 's!vendor/!!;s/_defconfig//;s/_user//;s/-perf//')" >> $GITHUB_ENV
         sudo apt-get update
         sudo apt-get install git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+        sudo apt-get install -y gcc-9 g++-9
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+        sudo update-alternatives --set gcc /usr/bin/gcc-9
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
     - name: Download Clang-aosp
@@ -254,8 +257,9 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
-        # 设置 python2 为默认 python
         sudo ln -sf /usr/bin/python2 /usr/bin/python
+        
+        sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' $(find . -type f -name "dtc-lexer.lex.c")
         
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
@@ -264,28 +268,7 @@ jobs:
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
-        
-        # 添加 -fcommon 到 HOSTCFLAGS 和 CFLAGS
-        export HOSTCFLAGS="-fcommon"
-        export CFLAGS="-fcommon"
-        
-        # 第一次编译生成文件
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
-        
-        # 修复 DTC 编译器源码中的 yylloc 重定义问题
-        if [ -f "out/scripts/dtc/dtc-lexer.lex.c" ]; then
-          sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' out/scripts/dtc/dtc-lexer.lex.c
-        fi
-        
-        # 修复 dtc-parser.tab.c 中的定义
-        if [ -f "out/scripts/dtc/dtc-parser.tab.c" ]; then
-          sed -i 's/YYLTYPE yylloc/YYLTYPE yylloc/g' out/scripts/dtc/dtc-parser.tab.c
-        fi
-        
-        # 清理并重新编译
-        make clean O=out
-        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
-        
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
