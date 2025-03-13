@@ -257,6 +257,9 @@ jobs:
         # 设置 python2 为默认 python
         sudo ln -sf /usr/bin/python2 /usr/bin/python
         
+        # 修复 DTC 编译器源码中的 yylloc 重定义问题
+        sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
+        
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
         export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
