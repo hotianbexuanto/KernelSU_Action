@@ -94,12 +94,6 @@ jobs:
         sudo update-alternatives --set gcc /usr/bin/gcc-9
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
-    - name: Fix Phoenix header path
-      run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
-        mkdir -p vendor/oppo/oppo_phoenix/kernel/oppo_phoenix
-        cp drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
-
     - name: Download Clang-aosp
       if: env.USE_CUSTOM_CLANG != 'true'
       run: |
@@ -196,6 +190,17 @@ jobs:
           echo "LOCALVERSION=$(cat android-kernel/localversion)" >> $GITHUB_ENV
         else
           echo "LOCALVERSION=" >> $GITHUB_ENV
+        fi
+
+    - name: Fix Phoenix header path
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
+        mkdir -p vendor/oppo/oppo_phoenix/kernel/oppo_phoenix
+        if [ -f "drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h" ]; then
+          cp drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
+        else
+          echo "Warning: oppo_phoenix.h not found in expected location"
+          find . -name "oppo_phoenix.h" -type f
         fi
 
     - name: Download source boot image
