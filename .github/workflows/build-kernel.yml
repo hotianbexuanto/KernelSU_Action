@@ -89,9 +89,6 @@ jobs:
         echo "DEVICE=$(echo ${{ env.KERNEL_CONFIG }} | sed 's!vendor/!!;s/_defconfig//;s/_user//;s/-perf//')" >> $GITHUB_ENV
         sudo apt-get update
         sudo apt-get install git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
-        sudo apt-get install -y gcc-9 g++-9
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
-        sudo update-alternatives --set gcc /usr/bin/gcc-9
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
     - name: Download Clang-aosp
@@ -192,17 +189,6 @@ jobs:
           echo "LOCALVERSION=" >> $GITHUB_ENV
         fi
 
-    - name: Fix Phoenix header path
-      run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
-        mkdir -p vendor/oppo/oppo_phoenix/kernel/oppo_phoenix
-        if [ -f "drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h" ]; then
-          cp drivers/soc/oppo/oppo_phoenix/oppo_phoenix.h vendor/oppo/oppo_phoenix/kernel/oppo_phoenix/
-        else
-          echo "Warning: oppo_phoenix.h not found in expected location"
-          find . -name "oppo_phoenix.h" -type f
-        fi
-
     - name: Download source boot image
       if: env.BUILD_BOOT_IMG == 'true'
       run: |
@@ -223,8 +209,7 @@ jobs:
 
     - name: Setup Configuration for Kernel
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
-        ls
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         if [ ${{ env.APPLY_KSU_PATCH }} = true ]; then
             bash $GITHUB_WORKSPACE/patches/patches.sh
             if grep -q "CONFIG_KSU" arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}; then
@@ -260,19 +245,9 @@ jobs:
         key: build-kernel-${{ env.DEVICE }}${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}
         max-size: 2G
 
-    - name: Install Python 2
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python2
-
     - name: Build kernel
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel-4.14
-        sudo ln -sf /usr/bin/python2 /usr/bin/python
-        
-        # 应用编译修复补丁
-        patch -p1 < $GITHUB_WORKSPACE/patches/fix_compilation.patch
-        
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
         export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
@@ -280,16 +255,7 @@ jobs:
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
-        
-        # 首先生成配置
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
-        
-        # 修改 scripts/dtc/dtc-lexer.lex.c 文件
-        if [ -f "scripts/dtc/dtc-lexer.lex.c" ]; then
-          sed -i 's/^YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.lex.c
-        fi
-        
-        # 开始主编译过程
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
