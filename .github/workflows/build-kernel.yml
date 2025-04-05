@@ -207,7 +207,9 @@ jobs:
         cd KernelSU
         git checkout susfs-dev
         cd ..
-        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/patches/path_umount.patch" | patch -p1
+        # 下载并应用 path_umount 补丁
+        wget https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/patches/path_umount.patch -O path_umount.patch
+        git apply --reject --whitespace=fix path_umount.patch || true
         curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
         KSU_VERSION=$(cd KernelSU && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
         echo "UPLOADNAME=-KernelSU_$KSU_VERSION" >> $GITHUB_ENV
