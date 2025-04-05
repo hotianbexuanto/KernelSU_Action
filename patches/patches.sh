@@ -11,26 +11,7 @@ patch_files=(
     fs/read_write.c
     fs/stat.c
     drivers/input/input.c
-    fs/namei.c
 )
-
-# 添加path_umount回移植功能
-if ! grep -q "static int path_umount" fs/namespace.c; then
-    echo "Adding path_umount to fs/namespace.c"
-    sed -i '/int umount_tree/i\
-static int path_umount(struct path *path, int flags)\n\
-{\n\
-\tstruct mount *mnt = real_mount(path->mnt);\n\
-\n\
-\tif (!check_mnt(mnt))\n\
-\t\treturn -EINVAL;\n\
-\n\
-\treturn umount_tree(mnt, flags);\n\
-}\n\
-EXPORT_SYMBOL(path_umount);\n\
-\n\
-' fs/namespace.c
-fi
 
 for i in "${patch_files[@]}"; do
 
@@ -84,16 +65,6 @@ for i in "${patch_files[@]}"; do
         fi
         ;;
 
-    ## namei.c - 为SukiSU添加挂载点处理
-    fs/namei.c)
-        if ! grep -q "ksu_handle_path_mount" fs/namei.c; then
-            sed -i '/#include <linux\/mount.h>/a\#ifdef CONFIG_KSU\nextern int ksu_handle_path_mount(const char __user *dir_name, int *flags);\n#endif' fs/namei.c
-            if grep -q "static int path_mount" fs/namei.c; then
-                sed -i '/static int path_mount/,/^{/a\\n\t#ifdef CONFIG_KSU\n\tif (ksu_handle_path_mount(dir_name, flags) == 0)\n\t\treturn 0;\n\t#endif' fs/namei.c
-            fi
-        fi
-        ;;
-
     # drivers/input changes
     ## input.c
     drivers/input/input.c)
@@ -102,43 +73,4 @@ for i in "${patch_files[@]}"; do
         ;;
     esac
 
-done
-
-# 确保添加相关头文件并导出符号
-echo "Making sure to add needed headers for path_umount"
-if ! grep -q "#include <linux/path.h>" fs/namespace.c; then
-    sed -i '1i\#include <linux/path.h>' fs/namespace.c
-fi
-
-# 在内核头文件中声明path_umount函数
-echo "Declaring path_umount in kernel headers"
-
-# 尝试从不同路径查找可能的头文件位置
-possible_header_paths=(
-    "include/linux/fs.h"
-    "include/linux/mount.h"
-    "include/linux/fs_struct.h"
-    "include/linux/namespace.h" 
-)
-
-# 查找合适的头文件添加声明
-for header in "${possible_header_paths[@]}"; do
-    if [ -f "$header" ]; then
-        if ! grep -q "path_umount" "$header"; then
-            echo "Adding path_umount declaration to $header"
-            if grep -q "struct path" "$header"; then
-                sed -i '/struct path/a\extern int path_umount(struct path *path, int flags);' "$header"
-                break
-            elif grep -q "struct mount" "$header"; then
-                sed -i '/struct mount/a\extern int path_umount(struct path *path, int flags);' "$header"
-                break
-            else
-                sed -i '1i\#ifndef _PATH_UMOUNT_EXPORTED\n#define _PATH_UMOUNT_EXPORTED\nstruct path;\nextern int path_umount(struct path *path, int flags);\n#endif' "$header"
-                break
-            fi
-        else
-            echo "path_umount already declared in $header"
-            break
-        fi
-    fi
 done
