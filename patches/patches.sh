@@ -104,14 +104,41 @@ for i in "${patch_files[@]}"; do
 
 done
 
-# 确保添加相关头文件
+# 确保添加相关头文件并导出符号
 echo "Making sure to add needed headers for path_umount"
 if ! grep -q "#include <linux/path.h>" fs/namespace.c; then
     sed -i '1i\#include <linux/path.h>' fs/namespace.c
 fi
 
-# 添加path_umount到namespace.h
-echo "Adding path_umount declaration to namespace.h"
-if ! grep -q "path_umount" include/linux/namespace.h; then
-    sed -i '/int umount_tree(struct mount \*mnt, int flags);/a\extern int path_umount(struct path *path, int flags);' include/linux/namespace.h
-fi
+# 在内核头文件中声明path_umount函数
+echo "Declaring path_umount in kernel headers"
+
+# 尝试从不同路径查找可能的头文件位置
+possible_header_paths=(
+    "include/linux/fs.h"
+    "include/linux/mount.h"
+    "include/linux/fs_struct.h"
+    "include/linux/namespace.h" 
+)
+
+# 查找合适的头文件添加声明
+for header in "${possible_header_paths[@]}"; do
+    if [ -f "$header" ]; then
+        if ! grep -q "path_umount" "$header"; then
+            echo "Adding path_umount declaration to $header"
+            if grep -q "struct path" "$header"; then
+                sed -i '/struct path/a\extern int path_umount(struct path *path, int flags);' "$header"
+                break
+            elif grep -q "struct mount" "$header"; then
+                sed -i '/struct mount/a\extern int path_umount(struct path *path, int flags);' "$header"
+                break
+            else
+                sed -i '1i\#ifndef _PATH_UMOUNT_EXPORTED\n#define _PATH_UMOUNT_EXPORTED\nstruct path;\nextern int path_umount(struct path *path, int flags);\n#endif' "$header"
+                break
+            fi
+        else
+            echo "path_umount already declared in $header"
+            break
+        fi
+    fi
+done
