@@ -238,6 +238,7 @@ jobs:
             echo "CONFIG_CC_WERROR=n" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
 
+<<<<<<< HEAD
     - name: Setup missing directories and files
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
@@ -262,6 +263,8 @@ jobs:
         # 创建软链接
         ln -sfn ../vendor/oplus/kernel/oplus_performance/sched_assist kernel/sched_assist
 
+=======
+>>>>>>> parent of 44b8ff9 (在 build-kernel.yml 中添加创建缺失的 sched_assist 配置文件的步骤，以启用 OPLUS sched_assist 功能。)
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
