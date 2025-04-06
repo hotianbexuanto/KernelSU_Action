@@ -238,33 +238,6 @@ jobs:
             echo "CONFIG_CC_WERROR=n" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
 
-<<<<<<< HEAD
-    - name: Setup missing directories and files
-      run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        # 确保sched_assist目录存在
-        mkdir -p vendor/oplus/kernel/oplus_performance/sched_assist
-        
-        # 创建Kconfig文件
-        cat > vendor/oplus/kernel/oplus_performance/sched_assist/Kconfig << 'EOL'
-        config OPLUS_FEATURE_SCHED_ASSIST
-          bool "Enable OPLUS sched_assist feature"
-          default y
-          help
-            Enable OPLUS sched_assist feature.
-        EOL
-        
-        # 确保kernel/sched_assist目录存在，并创建到实际目录的软链接
-        mkdir -p kernel
-        # 如果sched_assist已经存在但不是软链接，则删除它
-        if [ -e kernel/sched_assist ] && [ ! -L kernel/sched_assist ]; then
-          rm -rf kernel/sched_assist
-        fi
-        # 创建软链接
-        ln -sfn ../vendor/oplus/kernel/oplus_performance/sched_assist kernel/sched_assist
-
-=======
->>>>>>> parent of 44b8ff9 (在 build-kernel.yml 中添加创建缺失的 sched_assist 配置文件的步骤，以启用 OPLUS sched_assist 功能。)
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
