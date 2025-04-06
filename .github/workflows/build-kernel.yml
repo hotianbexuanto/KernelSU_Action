@@ -238,6 +238,17 @@ jobs:
             echo "CONFIG_CC_WERROR=n" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         fi
 
+    - name: 创建缺失的sched_assist配置文件
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel/sched_assist
+        cat > $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel/sched_assist/Kconfig << 'EOL'
+        config OPLUS_FEATURE_SCHED_ASSIST
+        	bool "Enable OPLUS sched_assist feature"
+        	default y
+        	help
+        	  Enable OPLUS sched_assist feature.
+        EOL
+
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
