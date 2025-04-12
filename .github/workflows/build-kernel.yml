@@ -106,33 +106,36 @@ jobs:
         mkdir -p clang-aosp
         CLANG_URL="${{ env.CUSTOM_CLANG_SOURCE }}"
         
-        if [[ $CLANG_URL == *.tar.gz ]]; then
-            wget -O clang.tar.gz "$CLANG_URL"
-            tar -C clang-aosp/ -zxvf clang.tar.gz
-        elif [[ $CLANG_URL == *.tar.xz ]]; then
-            wget -O clang.tar.xz "$CLANG_URL"
-            tar -C clang-aosp/ -Jxvf clang.tar.xz
-        elif [[ $CLANG_URL == *.zip ]]; then
-            wget -O clang.zip "$CLANG_URL"
-            unzip clang.zip -d clang-aosp/
-        elif [[ $CLANG_URL == *github.com* ]] && [[ $CLANG_URL != *"/releases/"* ]]; then
-            # 只有当URL指向GitHub仓库而不是releases文件时才使用git克隆
-            git clone "$CLANG_URL" -b ${{ env.CUSTOM_CLANG_BRANCH }} clang-aosp --depth=1
+        echo "正在下载LLVM工具链: $CLANG_URL"
+        wget -O clang.tar.xz "$CLANG_URL"
+        
+        echo "解压LLVM工具链到clang-aosp目录"
+        tar -xf clang.tar.xz
+        
+        # 找到解压后的目录，通常是LLVM-*格式
+        LLVM_DIR=$(find . -maxdepth 1 -type d -name "LLVM*" | head -n 1)
+        if [ -n "$LLVM_DIR" ]; then
+          echo "找到LLVM目录: $LLVM_DIR"
+          # 如果解压出来的是LLVM目录，将其内容移动到clang-aosp
+          cp -r $LLVM_DIR/* clang-aosp/
+          
+          # 确保bin目录存在且有执行权限
+          chmod -R +x clang-aosp/bin
         else
-            # 默认尝试使用wget下载
-            FILENAME=$(basename "$CLANG_URL")
-            wget -O "$FILENAME" "$CLANG_URL"
-            
-            if [[ $FILENAME == *.tar.gz ]]; then
-                tar -C clang-aosp/ -zxvf "$FILENAME"
-            elif [[ $FILENAME == *.tar.xz ]]; then
-                tar -C clang-aosp/ -Jxvf "$FILENAME"
-            elif [[ $FILENAME == *.zip ]]; then
-                unzip "$FILENAME" -d clang-aosp/
-            else
-                echo "未知文件类型，尝试作为tar.xz处理"
-                tar -C clang-aosp/ -Jxvf "$FILENAME" || echo "解压失败，可能需要手动检查"
-            fi
+          echo "没有找到LLVM目录，检查解压是否正确"
+          ls -la
+        fi
+        
+        # 检查clang是否可用
+        echo "检查clang安装情况"
+        ls -la clang-aosp/
+        ls -la clang-aosp/bin/ || echo "bin目录不存在"
+        
+        if [ -f clang-aosp/bin/clang ]; then
+          echo "clang工具已找到，测试版本:"
+          clang-aosp/bin/clang --version
+        else
+          echo "警告: 找不到clang可执行文件!"
         fi
 
     - name: Download Gcc-aosp
@@ -266,13 +269,27 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        
+        # 显示环境变量和路径
+        echo "检查PATH和工具位置:"
+        echo "PATH=$PATH"
+        ls -la $GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin || echo "clang-aosp/bin不存在"
+        
+        # 确保PATH包含clang目录
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
+        
+        # 测试工具是否可用
+        which clang || echo "clang不在PATH中"
+        which ld.lld || echo "ld.lld不在PATH中"
+        
         export KBUILD_BUILD_HOST=Github-Action
         export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
         if [ ! -z ${{ env.KSU_EXPECTED_SIZE }} ] && [ ! -z ${{ env.KSU_EXPECTED_HASH }} ]; then
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
+        
+        # 继续原来的构建命令
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
