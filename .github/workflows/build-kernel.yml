@@ -88,10 +88,19 @@ jobs:
         echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y%m%d%H%M")" >> $GITHUB_ENV
         echo "DEVICE=$(echo ${{ env.KERNEL_CONFIG }} | sed 's!vendor/!!;s/_defconfig//;s/_user//;s/-perf//')" >> $GITHUB_ENV
         sudo apt-get update
-        sudo apt-get install -y git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3 || echo "安装依赖可能部分失败，继续执行..."
+        # 安装必要的依赖包
+        sudo apt-get install -y git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+        
+        # 增加编译工具链依赖
+        sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi 
         
         # 删除可能冲突的包
         sudo apt-get remove -y 'php.*' || echo "::warning::PHP移除命令失败，但会继续执行"
+        
+        # 查看系统信息
+        echo "系统信息:"
+        uname -a
+        gcc --version
         
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
@@ -336,28 +345,56 @@ jobs:
         CLANG_BIN=$(which clang)
         echo "Intercepted as call with args: $@" >&2
 
+        # 更兼容的数组处理方式
+        args=()
+        gnu_specific=0
+
+        # 打印所有参数进行调试
+        echo "原始参数列表:" >&2
+        for i in "$@"; do
+          echo "  - $i" >&2
+        done
+
         # 处理参数，移除GNU as特有的参数
-        declare -a CLEAN_ARGS=()
         for arg in "$@"; do
-          # 跳过GNU as特有的参数
-          if [ "$arg" = "--64" ]; then
-            echo "Removing --64 argument" >&2
-            continue
-          elif [ "$arg" = "-EL" ]; then
-            echo "Removing -EL argument" >&2
-            continue
-          else
-            CLEAN_ARGS+=("$arg")
+          case "$arg" in
+            "--64")
+              echo "移除GNU特有参数: --64" >&2
+              gnu_specific=1
+              ;;
+            "-EL")
+              echo "移除GNU特有参数: -EL" >&2
+              gnu_specific=1
+              ;;
+            *)
+              args+=("$arg")
+              ;;
+          esac
+        done
+
+        # 输出处理后的参数列表
+        echo "处理后的参数列表:" >&2
+        for i in "${args[@]}"; do
+          echo "  - $i" >&2
+        done
+
+        # 检测是否为汇编文件
+        is_assembly=0
+        for arg in "$@"; do
+          if [[ "$arg" == *.s ]]; then
+            is_assembly=1
+            echo "检测到汇编文件: $arg" >&2
+            break
           fi
         done
 
-        # 判断是否为汇编文件
-        if grep -q "\.s" <<< "$*"; then
-          echo "Processing assembly file with: ${CLEAN_ARGS[@]}" >&2
-          $CLANG_BIN -c -integrated-as "${CLEAN_ARGS[@]}"
+        # 基于检测结果执行clang
+        if [ $is_assembly -eq 1 ] || [ $gnu_specific -eq 1 ]; then
+          echo "使用clang处理汇编文件: $CLANG_BIN -c -integrated-as ${args[@]}" >&2
+          $CLANG_BIN -c -integrated-as "${args[@]}"
         else
-          echo "Processing with: ${CLEAN_ARGS[@]}" >&2
-          $CLANG_BIN -c "${CLEAN_ARGS[@]}"
+          echo "使用clang处理普通文件: $CLANG_BIN -c ${args[@]}" >&2
+          $CLANG_BIN -c "${args[@]}"
         fi
         EOF
         
@@ -377,7 +414,11 @@ jobs:
         
         # 清理工作区
         echo "清理内核工作区..."
-        make mrproper
+        make ARCH=${{ env.ARCH }} mrproper
+        
+        # 验证目录状态
+        echo "检查目录状态:"
+        ls -la
         
         # 禁用CONFIG_AS_HAS_ARMV8_4
         echo "CONFIG_AS_HAS_ARMV8_4=n" >> .config
@@ -412,6 +453,14 @@ jobs:
         # 设置AS无需ARMV8_4支持
         echo "CONFIG_AS_HAS_ARMV8_4=n" >> out/.config
         grep -q CONFIG_AS_HAS_ARMV8_4 out/.config || echo "CONFIG_AS_HAS_ARMV8_4=n" >> out/.config
+        
+        # 验证配置结果
+        echo "检查配置文件是否正确设置:"
+        grep "CONFIG_AS_HAS_ARMV8_4" out/.config || echo "未找到CONFIG_AS_HAS_ARMV8_4配置项"
+        
+        # 再次运行配置以确保所有选项生效
+        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
+          oldconfig
         
         echo "开始编译内核..."
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
