@@ -343,59 +343,81 @@ jobs:
         cat << 'EOF' > $GITHUB_WORKSPACE/bin_intercept/as
         #!/bin/bash
         CLANG_BIN=$(which clang)
-        echo "Intercepted as call with args: $@" >&2
+        echo "拦截as调用，参数: $@" >&2
 
-        # 更兼容的数组处理方式
-        args=()
-        gnu_specific=0
+        # 创建新的参数数组
+        declare -a new_args=()
 
-        # 打印所有参数进行调试
-        echo "原始参数列表:" >&2
-        for i in "$@"; do
-          echo "  - $i" >&2
-        done
+        # 调试信息
+        echo "原始参数: $@" >&2
 
-        # 处理参数，移除GNU as特有的参数
-        for arg in "$@"; do
-          case "$arg" in
-            "--64")
-              echo "移除GNU特有参数: --64" >&2
-              gnu_specific=1
-              ;;
-            "-EL")
-              echo "移除GNU特有参数: -EL" >&2
-              gnu_specific=1
-              ;;
-            *)
-              args+=("$arg")
-              ;;
-          esac
-        done
-
-        # 输出处理后的参数列表
-        echo "处理后的参数列表:" >&2
-        for i in "${args[@]}"; do
-          echo "  - $i" >&2
-        done
-
-        # 检测是否为汇编文件
-        is_assembly=0
+        # 判断是否处理汇编文件
+        is_asm_file=0
         for arg in "$@"; do
           if [[ "$arg" == *.s ]]; then
-            is_assembly=1
-            echo "检测到汇编文件: $arg" >&2
+            is_asm_file=1
             break
           fi
         done
 
-        # 基于检测结果执行clang
-        if [ $is_assembly -eq 1 ] || [ $gnu_specific -eq 1 ]; then
-          echo "使用clang处理汇编文件: $CLANG_BIN -c -integrated-as ${args[@]}" >&2
-          $CLANG_BIN -c -integrated-as "${args[@]}"
+        # 是否有特定于GNU的参数
+        has_gnu_args=0
+
+        # 处理参数
+        for arg in "$@"; do
+          # 跳过GNU特有参数
+          case "$arg" in
+            "--64")
+              echo "跳过GNU as特有参数: --64" >&2
+              has_gnu_args=1
+              ;;
+            "-EL")
+              echo "跳过GNU as特有参数: -EL" >&2
+              has_gnu_args=1
+              ;;
+            "-march="*)
+              # 保留-march参数，因为clang也支持
+              echo "保留参数: $arg" >&2
+              new_args+=("$arg")
+              ;;
+            "-"*)
+              # 检查其他可能的GNU as特有参数
+              if [[ "$arg" == "-W"* ]] || [[ "$arg" == "-I"* ]] || [[ "$arg" == "-o"* ]]; then
+                echo "保留参数: $arg" >&2
+                new_args+=("$arg")
+              else
+                echo "检查GNU as参数: $arg" >&2
+                # 保留常见的GNU和LLVM共有参数
+                new_args+=("$arg")
+              fi
+              ;;
+            *)
+              # 保留所有非选项参数(如文件名)
+              echo "保留参数: $arg" >&2
+              new_args+=("$arg")
+              ;;
+          esac
+        done
+
+        # 打印最终参数列表
+        echo "处理后参数:" >&2
+        for arg in "${new_args[@]}"; do
+          echo "  $arg" >&2
+        done
+
+        # 根据情况调用适当的命令
+        if [ $is_asm_file -eq 1 ] || [ $has_gnu_args -eq 1 ]; then
+          echo "使用clang处理带有-integrated-as: ${new_args[@]}" >&2
+          $CLANG_BIN -c -integrated-as "${new_args[@]}"
+          exit_code=$?
         else
-          echo "使用clang处理普通文件: $CLANG_BIN -c ${args[@]}" >&2
-          $CLANG_BIN -c "${args[@]}"
+          echo "使用clang处理: ${new_args[@]}" >&2
+          $CLANG_BIN -c "${new_args[@]}"
+          exit_code=$?
         fi
+
+        # 返回相同的退出码
+        exit $exit_code
         EOF
         
         chmod +x $GITHUB_WORKSPACE/bin_intercept/as
@@ -462,23 +484,68 @@ jobs:
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
           oldconfig
         
+        # 创建可能需要的中间目录
+        echo "确保关键目录存在..."
+        mkdir -p out/scripts
+        mkdir -p out/scripts/basic
+        mkdir -p out/scripts/kconfig
+        mkdir -p out/include/config
+        
         echo "开始编译内核..."
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
-            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} \
-              CLANG_TRIPLE=aarch64-linux-gnu- \
-              LD=ld.lld \
-              AR=llvm-ar \
-              NM=llvm-nm \
-              OBJCOPY=llvm-objcopy \
-              OBJDUMP=llvm-objdump \
-              STRIP=llvm-strip \
-              AS=llvm-as \
-              KCFLAGS="$KCFLAGS" \
-              KBUILD_CFLAGS="$KBUILD_CFLAGS" \
-              ${{ env.GCC_64 }} \
-              ${{ env.GCC_32 }} \
-              V=1
+            # 添加尝试次数计数
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                echo "编译尝试 #$((RETRY_COUNT+1))..."
+                
+                make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} \
+                  CLANG_TRIPLE=aarch64-linux-gnu- \
+                  LD=ld.lld \
+                  AR=llvm-ar \
+                  NM=llvm-nm \
+                  OBJCOPY=llvm-objcopy \
+                  OBJDUMP=llvm-objdump \
+                  STRIP=llvm-strip \
+                  AS=llvm-as \
+                  KCFLAGS="$KCFLAGS" \
+                  KBUILD_CFLAGS="$KBUILD_CFLAGS" \
+                  ${{ env.GCC_64 }} \
+                  ${{ env.GCC_32 }} \
+                  V=1
+                
+                # 检查是否成功
+                if [ $? -eq 0 ]; then
+                    echo "编译成功！"
+                    break
+                fi
+                
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                    echo "编译失败，尝试清理和再次构建..."
+                    make mrproper
+                    
+                    # 重新配置
+                    make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
+                      CLANG_TRIPLE=aarch64-linux-gnu- \
+                      LD=ld.lld \
+                      ${{ env.KERNEL_CONFIG }}
+                      
+                    # 确保禁用ARMV8_4
+                    echo "CONFIG_AS_HAS_ARMV8_4=n" >> out/.config
+                    make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} oldconfig
+                fi
+            done
+            
+            # 检查是否在所有尝试后失败
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ] && [ $? -ne 0 ]; then
+                echo "在 $MAX_RETRIES 次尝试后编译仍然失败"
+                exit 1
+            fi
         else
+            # 没有启用ccache的情况
             make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
               CLANG_TRIPLE=aarch64-linux-gnu- \
               LD=ld.lld \
