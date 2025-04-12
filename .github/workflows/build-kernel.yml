@@ -103,21 +103,35 @@ jobs:
       if: env.USE_CUSTOM_CLANG == 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
-        if [[ ${{ env.CUSTOM_CLANG_SOURCE }} =~ git ]]; then
-            git clone ${{ env.CUSTOM_CLANG_SOURCE }} -b ${{ env.CUSTOM_CLANG_BRANCH }} clang-aosp --depth=1
+        mkdir -p clang-aosp
+        CLANG_URL="${{ env.CUSTOM_CLANG_SOURCE }}"
+        
+        if [[ $CLANG_URL == *.tar.gz ]]; then
+            wget -O clang.tar.gz "$CLANG_URL"
+            tar -C clang-aosp/ -zxvf clang.tar.gz
+        elif [[ $CLANG_URL == *.tar.xz ]]; then
+            wget -O clang.tar.xz "$CLANG_URL"
+            tar -C clang-aosp/ -Jxvf clang.tar.xz
+        elif [[ $CLANG_URL == *.zip ]]; then
+            wget -O clang.zip "$CLANG_URL"
+            unzip clang.zip -d clang-aosp/
+        elif [[ $CLANG_URL == *github.com* ]] && [[ $CLANG_URL != *"/releases/"* ]]; then
+            # 只有当URL指向GitHub仓库而不是releases文件时才使用git克隆
+            git clone "$CLANG_URL" -b ${{ env.CUSTOM_CLANG_BRANCH }} clang-aosp --depth=1
         else
-            if [[ ${{ env.CUSTOM_CLANG_SOURCE }} == *'.tar.gz' ]]; then
-                wget -O clang.tar.gz ${{ env.CUSTOM_CLANG_SOURCE }}
-                mkdir clang-aosp
-                tar -C clang-aosp/ -zxvf clang.tar.gz
-            elif [[ ${{ env.CUSTOM_CLANG_SOURCE }} == *'.tar.xz' ]]; then
-                wget -O clang.tar.xz ${{ env.CUSTOM_CLANG_SOURCE }}
-                mkdir clang-aosp
-                tar -C clang-aosp/ -Jxvf clang.tar.xz
+            # 默认尝试使用wget下载
+            FILENAME=$(basename "$CLANG_URL")
+            wget -O "$FILENAME" "$CLANG_URL"
+            
+            if [[ $FILENAME == *.tar.gz ]]; then
+                tar -C clang-aosp/ -zxvf "$FILENAME"
+            elif [[ $FILENAME == *.tar.xz ]]; then
+                tar -C clang-aosp/ -Jxvf "$FILENAME"
+            elif [[ $FILENAME == *.zip ]]; then
+                unzip "$FILENAME" -d clang-aosp/
             else
-                wget -O clang.zip ${{ env.CUSTOM_CLANG_SOURCE }}
-                mkdir clang-aosp
-                unzip clang.zip -d clang-aosp/
+                echo "未知文件类型，尝试作为tar.xz处理"
+                tar -C clang-aosp/ -Jxvf "$FILENAME" || echo "解压失败，可能需要手动检查"
             fi
         fi
 
