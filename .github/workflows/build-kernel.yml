@@ -331,25 +331,29 @@ jobs:
         #!/bin/bash
         CLANG_BIN=$(which clang)
         echo "Intercepted as call with args: $@" >&2
+
         # 处理参数，移除GNU as特有的参数
-        args=()
+        declare -a CLEAN_ARGS=()
         for arg in "$@"; do
-          # 跳过--64参数，这是GNU as特有的
-          if [[ "$arg" == "--64" ]]; then
+          # 跳过GNU as特有的参数
+          if [ "$arg" = "--64" ]; then
+            echo "Removing --64 argument" >&2
             continue
-          # 其他GNU as特有参数可以在这里处理
+          elif [ "$arg" = "-EL" ]; then
+            echo "Removing -EL argument" >&2
+            continue
           else
-            args+=("$arg")
+            CLEAN_ARGS+=("$arg")
           fi
         done
 
-        # 使用clang代替GNU as
-        if [[ "$*" == *".s"* ]]; then
-          # 处理汇编文件
-          $CLANG_BIN -c -integrated-as "${args[@]}"
+        # 判断是否为汇编文件
+        if grep -q "\.s" <<< "$*"; then
+          echo "Processing assembly file with: ${CLEAN_ARGS[@]}" >&2
+          $CLANG_BIN -c -integrated-as "${CLEAN_ARGS[@]}"
         else
-          # 对于其他情况，直接传递给clang处理
-          $CLANG_BIN -c "${args[@]}"
+          echo "Processing with: ${CLEAN_ARGS[@]}" >&2
+          $CLANG_BIN -c "${CLEAN_ARGS[@]}"
         fi
         EOF
         
