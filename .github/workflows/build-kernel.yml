@@ -331,13 +331,25 @@ jobs:
         #!/bin/bash
         CLANG_BIN=$(which clang)
         echo "Intercepted as call with args: $@" >&2
-        # 使用clang代替GNU as，clang能接受兼容GNU as的参数
+        # 处理参数，移除GNU as特有的参数
+        args=()
+        for arg in "$@"; do
+          # 跳过--64参数，这是GNU as特有的
+          if [[ "$arg" == "--64" ]]; then
+            continue
+          # 其他GNU as特有参数可以在这里处理
+          else
+            args+=("$arg")
+          fi
+        done
+
+        # 使用clang代替GNU as
         if [[ "$*" == *".s"* ]]; then
           # 处理汇编文件
-          $CLANG_BIN -c -integrated-as "$@"
+          $CLANG_BIN -c -integrated-as "${args[@]}"
         else
           # 对于其他情况，直接传递给clang处理
-          $CLANG_BIN -c "$@"
+          $CLANG_BIN -c "${args[@]}"
         fi
         EOF
         
