@@ -329,14 +329,15 @@ jobs:
         # 创建一个脚本拦截as调用，重定向到llvm-as
         cat << 'EOF' > $GITHUB_WORKSPACE/bin_intercept/as
         #!/bin/bash
-        LLVM_AS=$(which llvm-as)
-        echo "Intercepted as call, redirecting to llvm-as with args: $@" >&2
-        if [[ "$*" == *"-EL"* ]]; then
-          # 去掉-EL参数
-          NEW_ARGS=$(echo "$@" | sed 's/-EL//g')
-          $LLVM_AS $NEW_ARGS
+        CLANG_BIN=$(which clang)
+        echo "Intercepted as call with args: $@" >&2
+        # 使用clang代替GNU as，clang能接受兼容GNU as的参数
+        if [[ "$*" == *".s"* ]]; then
+          # 处理汇编文件
+          $CLANG_BIN -c -integrated-as "$@"
         else
-          $LLVM_AS "$@"
+          # 对于其他情况，直接传递给clang处理
+          $CLANG_BIN -c "$@"
         fi
         EOF
         
