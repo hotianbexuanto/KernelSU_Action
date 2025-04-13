@@ -88,20 +88,7 @@ jobs:
         echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y%m%d%H%M")" >> $GITHUB_ENV
         echo "DEVICE=$(echo ${{ env.KERNEL_CONFIG }} | sed 's!vendor/!!;s/_defconfig//;s/_user//;s/-perf//')" >> $GITHUB_ENV
         sudo apt-get update
-        # 安装必要的依赖包
-        sudo apt-get install -y git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
-        
-        # 增加编译工具链依赖
-        sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi 
-        
-        # 删除可能冲突的包
-        sudo apt-get remove -y 'php.*' || echo "::warning::PHP移除命令失败，但会继续执行"
-        
-        # 查看系统信息
-        echo "系统信息:"
-        uname -a
-        gcc --version
-        
+        sudo apt-get install git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
     - name: Download Clang-aosp
@@ -116,85 +103,18 @@ jobs:
       if: env.USE_CUSTOM_CLANG == 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
-        mkdir -p clang-aosp
-        CLANG_URL="${{ env.CUSTOM_CLANG_SOURCE }}"
-        
-        if [[ $CLANG_URL == *.tar.gz ]]; then
-            wget -O clang.tar.gz "$CLANG_URL"
-            tar -C clang-aosp/ -zxvf clang.tar.gz
-        elif [[ $CLANG_URL == *.tar.xz ]]; then
-            wget -O clang.tar.xz "$CLANG_URL"
-            tar -C clang-aosp/ -Jxvf clang.tar.xz
-            # 检查并修复路径结构
-            if [ -d "clang-aosp/LLVM-"* ]; then
-                LLVM_DIR=$(find clang-aosp -maxdepth 1 -type d -name "LLVM-*" | head -n 1)
-                if [ -n "$LLVM_DIR" ]; then
-                    echo "正在修复Clang工具路径..."
-                    # 移动bin目录内容到clang-aosp/bin
-                    mkdir -p clang-aosp/bin
-                    cp -r $LLVM_DIR/bin/* clang-aosp/bin/
-                    # 移动lib目录内容到clang-aosp/lib
-                    mkdir -p clang-aosp/lib
-                    cp -r $LLVM_DIR/lib/* clang-aosp/lib/
-                    # 移动include目录内容到clang-aosp/include
-                    if [ -d "$LLVM_DIR/include" ]; then
-                        mkdir -p clang-aosp/include
-                        cp -r $LLVM_DIR/include/* clang-aosp/include/
-                    fi
-                fi
-            fi
-        elif [[ $CLANG_URL == *.zip ]]; then
-            wget -O clang.zip "$CLANG_URL"
-            unzip clang.zip -d clang-aosp/
-        elif [[ $CLANG_URL == *github.com* ]] && [[ $CLANG_URL != *"/releases/"* ]]; then
-            # 只有当URL指向GitHub仓库而不是releases文件时才使用git克隆
-            git clone "$CLANG_URL" -b ${{ env.CUSTOM_CLANG_BRANCH }} clang-aosp --depth=1
-        else
-            # 默认尝试使用wget下载
-            FILENAME=$(basename "$CLANG_URL")
-            wget -O "$FILENAME" "$CLANG_URL"
-            
-            if [[ $FILENAME == *.tar.gz ]]; then
-                tar -C clang-aosp/ -zxvf "$FILENAME"
-            elif [[ $FILENAME == *.tar.xz ]]; then
-                tar -C clang-aosp/ -Jxvf "$FILENAME"
-                # 检查并修复路径结构 
-                if [ -d "clang-aosp/LLVM-"* ]; then
-                    LLVM_DIR=$(find clang-aosp -maxdepth 1 -type d -name "LLVM-*" | head -n 1)
-                    if [ -n "$LLVM_DIR" ]; then
-                        echo "正在修复Clang工具路径..."
-                        # 移动bin目录内容到clang-aosp/bin
-                        mkdir -p clang-aosp/bin
-                        cp -r $LLVM_DIR/bin/* clang-aosp/bin/
-                        # 移动lib目录内容到clang-aosp/lib
-                        mkdir -p clang-aosp/lib
-                        cp -r $LLVM_DIR/lib/* clang-aosp/lib/
-                        # 移动include目录内容到clang-aosp/include
-                        if [ -d "$LLVM_DIR/include" ]; then
-                            mkdir -p clang-aosp/include
-                            cp -r $LLVM_DIR/include/* clang-aosp/include/
-                        fi
-                    fi
-                fi
-            elif [[ $FILENAME == *.zip ]]; then
-                unzip "$FILENAME" -d clang-aosp/
+        if [[ ${{ env.CUSTOM_CLANG_SOURCE }} =~ git ]]; then
+            if [[ ${{ env.CUSTOM_CLANG_SOURCE }} == *'.tar.gz' ]]; then
+                wget -O clang.tar.gz ${{ env.CUSTOM_CLANG_SOURCE }}
+                mkdir clang-aosp
+                tar -C clang-aosp/ -zxvf clang.tar.gz
             else
-                echo "未知文件类型，尝试作为tar.xz处理"
-                tar -C clang-aosp/ -Jxvf "$FILENAME" || echo "解压失败，可能需要手动检查"
+                git clone ${{ env.CUSTOM_CLANG_SOURCE }} -b ${{ env.CUSTOM_CLANG_BRANCH }} clang-aosp --depth=1
             fi
-        fi
-        
-        # 确保二进制文件可执行
-        if [ -d "clang-aosp/bin" ]; then
-            chmod +x clang-aosp/bin/*
-        fi
-        
-        # 列出clang-aosp目录内容
-        echo "检查clang-aosp目录结构："
-        ls -la clang-aosp/
-        if [ -d "clang-aosp/bin" ]; then
-            echo "检查clang-aosp/bin目录内容："
-            ls -la clang-aosp/bin/
+        else
+            wget -O clang.zip ${{ env.CUSTOM_CLANG_SOURCE }}
+            mkdir clang-aosp
+            unzip clang.zip -d clang-aosp/
         fi
 
     - name: Download Gcc-aosp
@@ -283,7 +203,7 @@ jobs:
       if: env.ENABLE_KERNELSU == 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s ${{ env.KERNELSU_TAG }}
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s ${{ env.KERNELSU_TAG }}
         KSU_VERSION=$(cd KernelSU && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
         echo "UPLOADNAME=-KernelSU_$KSU_VERSION" >> $GITHUB_ENV
 
@@ -328,238 +248,42 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        
-        # 显示环境变量和工具路径
-        echo "检查工具链位置:"
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
-        which clang
-        which ld.lld
-        which llvm-as
-        
-        # 创建临时目录用于存放拦截脚本
-        mkdir -p $GITHUB_WORKSPACE/bin_intercept
-        
-        # 创建一个脚本拦截as调用，重定向到llvm-as
-        cat << 'EOF' > $GITHUB_WORKSPACE/bin_intercept/as
-        #!/bin/bash
-        CLANG_BIN=$(which clang)
-        echo "拦截as调用，参数: $@" >&2
-
-        # 创建新的参数数组
-        declare -a new_args=()
-
-        # 调试信息
-        echo "原始参数: $@" >&2
-
-        # 判断是否处理汇编文件
-        is_asm_file=0
-        for arg in "$@"; do
-          if [[ "$arg" == *.s ]]; then
-            is_asm_file=1
-            break
-          fi
-        done
-
-        # 是否有特定于GNU的参数
-        has_gnu_args=0
-
-        # 处理参数
-        for arg in "$@"; do
-          # 跳过GNU特有参数
-          case "$arg" in
-            "--64")
-              echo "跳过GNU as特有参数: --64" >&2
-              has_gnu_args=1
-              ;;
-            "-EL")
-              echo "跳过GNU as特有参数: -EL" >&2
-              has_gnu_args=1
-              ;;
-            "-march="*)
-              # 保留-march参数，因为clang也支持
-              echo "保留参数: $arg" >&2
-              new_args+=("$arg")
-              ;;
-            "-"*)
-              # 检查其他可能的GNU as特有参数
-              if [[ "$arg" == "-W"* ]] || [[ "$arg" == "-I"* ]] || [[ "$arg" == "-o"* ]]; then
-                echo "保留参数: $arg" >&2
-                new_args+=("$arg")
-              else
-                echo "检查GNU as参数: $arg" >&2
-                # 保留常见的GNU和LLVM共有参数
-                new_args+=("$arg")
-              fi
-              ;;
-            *)
-              # 保留所有非选项参数(如文件名)
-              echo "保留参数: $arg" >&2
-              new_args+=("$arg")
-              ;;
-          esac
-        done
-
-        # 打印最终参数列表
-        echo "处理后参数:" >&2
-        for arg in "${new_args[@]}"; do
-          echo "  $arg" >&2
-        done
-
-        # 根据情况调用适当的命令
-        if [ $is_asm_file -eq 1 ] || [ $has_gnu_args -eq 1 ]; then
-          echo "使用clang处理带有-integrated-as: ${new_args[@]}" >&2
-          $CLANG_BIN -c -integrated-as "${new_args[@]}"
-          exit_code=$?
-        else
-          echo "使用clang处理: ${new_args[@]}" >&2
-          $CLANG_BIN -c "${new_args[@]}"
-          exit_code=$?
-        fi
-
-        # 返回相同的退出码
-        exit $exit_code
-        EOF
-        
-        chmod +x $GITHUB_WORKSPACE/bin_intercept/as
-        
-        # 将拦截目录放在PATH最前面
-        export PATH=$GITHUB_WORKSPACE/bin_intercept:$PATH
-        
-        # 配置编译环境
         export KBUILD_BUILD_HOST=Github-Action
         export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
-        
-        # 强制使用LLVM工具链
-        export CONFIG_LLVM_POLLY=y  # 启用Polly优化
-        export LLVM=1
-        export LLVM_IAS=1
-        
-        # 清理工作区
-        echo "清理内核工作区..."
-        make ARCH=${{ env.ARCH }} mrproper
-        
-        # 验证目录状态
-        echo "检查目录状态:"
-        ls -la
-        
-        # 禁用CONFIG_AS_HAS_ARMV8_4
-        echo "CONFIG_AS_HAS_ARMV8_4=n" >> .config
-        
-        # 设置交叉编译前缀
-        export CROSS_COMPILE=aarch64-linux-gnu-
-        export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
-        
-        # 额外的编译器标志
-        export KBUILD_CFLAGS="-integrated-as"
-        export KCFLAGS="-integrated-as"
-        
         if [ ! -z ${{ env.KSU_EXPECTED_SIZE }} ] && [ ! -z ${{ env.KSU_EXPECTED_HASH }} ]; then
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
-        
-        echo "开始配置内核..."
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
-          CLANG_TRIPLE=aarch64-linux-gnu- \
-          LD=ld.lld \
+          CROSS_COMPILE=aarch64-linux-gnu- \
+          CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
           AR=llvm-ar \
           NM=llvm-nm \
           OBJCOPY=llvm-objcopy \
           OBJDUMP=llvm-objdump \
           STRIP=llvm-strip \
-          AS=llvm-as \
-          ${{ env.GCC_64 }} \
-          ${{ env.GCC_32 }} \
-          ${{ env.KERNEL_CONFIG }}
-        
-        # 设置AS无需ARMV8_4支持
-        echo "CONFIG_AS_HAS_ARMV8_4=n" >> out/.config
-        grep -q CONFIG_AS_HAS_ARMV8_4 out/.config || echo "CONFIG_AS_HAS_ARMV8_4=n" >> out/.config
-        
-        # 验证配置结果
-        echo "检查配置文件是否正确设置:"
-        grep "CONFIG_AS_HAS_ARMV8_4" out/.config || echo "未找到CONFIG_AS_HAS_ARMV8_4配置项"
-        
-        # 再次运行配置以确保所有选项生效
-        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
-          oldconfig
-        
-        # 创建可能需要的中间目录
-        echo "确保关键目录存在..."
-        mkdir -p out/scripts
-        mkdir -p out/scripts/basic
-        mkdir -p out/scripts/kconfig
-        mkdir -p out/include/config
-        
-        echo "开始编译内核..."
+          ${{ env.EXTRA_CMDS }} ${{ env.KERNEL_CONFIG }}
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
-            # 添加尝试次数计数
-            MAX_RETRIES=3
-            RETRY_COUNT=0
-            
-            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-                echo "编译尝试 #$((RETRY_COUNT+1))..."
-                
-                make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} \
-                  CLANG_TRIPLE=aarch64-linux-gnu- \
-                  LD=ld.lld \
-                  AR=llvm-ar \
-                  NM=llvm-nm \
-                  OBJCOPY=llvm-objcopy \
-                  OBJDUMP=llvm-objdump \
-                  STRIP=llvm-strip \
-                  AS=llvm-as \
-                  KCFLAGS="$KCFLAGS" \
-                  KBUILD_CFLAGS="$KBUILD_CFLAGS" \
-                  ${{ env.GCC_64 }} \
-                  ${{ env.GCC_32 }} \
-                  V=1
-                
-                # 检查是否成功
-                if [ $? -eq 0 ]; then
-                    echo "编译成功！"
-                    break
-                fi
-                
-                RETRY_COUNT=$((RETRY_COUNT+1))
-                
-                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-                    echo "编译失败，尝试清理和再次构建..."
-                    make mrproper
-                    
-                    # 重新配置
-                    make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
-                      CLANG_TRIPLE=aarch64-linux-gnu- \
-                      LD=ld.lld \
-                      ${{ env.KERNEL_CONFIG }}
-                      
-                    # 确保禁用ARMV8_4
-                    echo "CONFIG_AS_HAS_ARMV8_4=n" >> out/.config
-                    make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} oldconfig
-                fi
-            done
-            
-            # 检查是否在所有尝试后失败
-            if [ $RETRY_COUNT -eq $MAX_RETRIES ] && [ $? -ne 0 ]; then
-                echo "在 $MAX_RETRIES 次尝试后编译仍然失败"
-                exit 1
-            fi
-        else
-            # 没有启用ccache的情况
-            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
-              CLANG_TRIPLE=aarch64-linux-gnu- \
-              LD=ld.lld \
+            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} \
+              CROSS_COMPILE=aarch64-linux-gnu- \
+              CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
               AR=llvm-ar \
               NM=llvm-nm \
               OBJCOPY=llvm-objcopy \
               OBJDUMP=llvm-objdump \
               STRIP=llvm-strip \
-              AS=llvm-as \
-              KCFLAGS="$KCFLAGS" \
-              KBUILD_CFLAGS="$KBUILD_CFLAGS" \
-              ${{ env.GCC_64 }} \
-              ${{ env.GCC_32 }} \
-              V=1
+              ${{ env.EXTRA_CMDS }}
+        else
+            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
+              CROSS_COMPILE=aarch64-linux-gnu- \
+              CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+              AR=llvm-ar \
+              NM=llvm-nm \
+              OBJCOPY=llvm-objcopy \
+              OBJDUMP=llvm-objdump \
+              STRIP=llvm-strip \
+              ${{ env.EXTRA_CMDS }}
         fi
 
     - name: Check a kernel output files
