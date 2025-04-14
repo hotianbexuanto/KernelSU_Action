@@ -45,8 +45,7 @@ jobs:
             DISABLE-LTO
             ADD_OVERLAYFS_CONFIG
             DISABLE_CC_WERROR
-            APPLY_KPROBES_PATCH
-            APPLY_CLANG_PATCH
+            APPLY_KSU_PATCH
             USE_CUSTOM_ANYKERNEL3
             CUSTOM_ANYKERNEL3_SOURCE
             CUSTOM_ANYKERNEL3_BRANCH
@@ -203,6 +202,64 @@ jobs:
           echo "LOCALVERSION=" >> $GITHUB_ENV
         fi
 
+    - name: Apply Clang cross-compile fixes
+      if: env.USE_CUSTOM_CLANG == 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        
+        # 修复1: "Makefile: Fix GCC_TOOLCHAIN_DIR prefix for Clang cross compilation"
+        cat > gcc_toolchain_fix.patch << 'EOL'
+        diff --git a/Makefile b/Makefile
+        index xxxxxxx..xxxxxxx 100644
+        --- a/Makefile
+        +++ b/Makefile
+        @@ -499,7 +499,11 @@ KBUILD_CFLAGS += $(call cc-option,-Wno-address-of-packed-member)
+         # Tell gcc to never replace conditional load with a non-conditional one
+         KBUILD_CFLAGS  += $(call cc-option,--param=allow-store-data-races=0)
+         # Clang options
+        -KBUILD_CFLAGS += $(call cc-option,-fcx-limited-range)
+        +KBUILD_CFLAGS += $(call cc-option,-fcx-limited-range) 
+        +ifneq ($(GCC_TOOLCHAIN_DIR),)
+        +KBUILD_CFLAGS += $(call cc-option,-fdebug-prefix-map=$(GCC_TOOLCHAIN_DIR)=)
+        +endif
+        +
+         # Keep stack frames readable in panic reports
+         ifeq ($(cc-name),clang)
+             KBUILD_CFLAGS += -fno-optimize-sibling-calls
+        EOL
+        
+        # 修复2: "arm64: vdso32: Fix '--prefix=' value for newer versions of clang"
+        cat > vdso32_fix.patch << 'EOL'
+        diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
+        index xxxxxxx..xxxxxxx 100644
+        --- a/arch/arm64/Makefile
+        +++ b/arch/arm64/Makefile
+        @@ -69,8 +69,8 @@ KBUILD_CPPFLAGS	+= -mbig-endian
+         CHECKFLAGS	+= -D__AARCH64EB__
+         else
+         KBUILD_CPPFLAGS	+= -mlittle-endian
+        -AS		+= -EL
+        -LD		+= -ELF
+        +AS		+= $(call cc-option,-EL,)
+        +LD		+= $(call cc-option,-ELF,)
+         endif
+         
+        -KBUILD_LDFLAGS	+= -maarch64linuxb
+        +KBUILD_LDFLAGS	+= $(call cc-option,-maarch64linuxb,)
+        EOL
+        
+        # 尝试应用补丁
+        patch -p1 < gcc_toolchain_fix.patch || echo "Failed to apply gcc_toolchain_fix patch, may be already patched or not needed"
+        patch -p1 < vdso32_fix.patch || echo "Failed to apply vdso32_fix patch, may be already patched or not needed"
+        
+        # 检查是否存在vdso32目录，如果存在，还需要修复其Makefile
+        if [ -d "arch/arm64/kernel/vdso32" ]; then
+          if grep -q "\-\-prefix=" arch/arm64/kernel/vdso32/Makefile; then
+            sed -i 's/\(--prefix=\)\$\$\(abspath \$(obj)\/..\/..\/..\/\)\(\/\)/\1/g' arch/arm64/kernel/vdso32/Makefile
+            echo "Fixed vdso32 Makefile prefix"
+          fi
+        fi
+
     - name: Download source boot image
       if: env.BUILD_BOOT_IMG == 'true'
       run: |
@@ -224,7 +281,7 @@ jobs:
     - name: Setup Configuration for Kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        if [ ${{ env.APPLY_KPROBES_PATCH }} = true ]; then
+        if [ ${{ env.APPLY_KSU_PATCH }} = true ]; then
             bash $GITHUB_WORKSPACE/patches/patches.sh
             if grep -q "CONFIG_KSU" arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}; then
                 sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/g' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
@@ -233,7 +290,7 @@ jobs:
                 echo "CONFIG_KSU=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             fi
         fi
-        if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.APPLY_KPROBES_PATCH }} != true ]; then
+        if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.APPLY_KSU_PATCH }} != true ]; then
             echo "CONFIG_MODULES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             echo "CONFIG_KPROBES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             echo "CONFIG_HAVE_KPROBES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
@@ -250,73 +307,6 @@ jobs:
         fi
         if [ ${{ env.DISABLE_CC_WERROR }} = true ]; then
             echo "CONFIG_CC_WERROR=n" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
-        fi
-
-    - name: Apply Clang Patches
-      if: env.APPLY_CLANG_PATCH == 'true'
-      run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        
-        # 创建第一个补丁：修复GCC_TOOLCHAIN_DIR
-        cat > clang_cross_compile_fix.patch << 'EOL'
-        diff --git a/Makefile b/Makefile
-        index xxxxxx..xxxxxx 100644
-        --- a/Makefile
-        +++ b/Makefile
-        @@ -499,7 +499,11 @@ KBUILD_CFLAGS += $(call cc-option,-Wno-address-of-packed-member)
-         # Tell gcc to never replace conditional load with a non-conditional one
-         KBUILD_CFLAGS  += $(call cc-option,--param=allow-store-data-races=0)
-         # Clang options
-        -KBUILD_CFLAGS += $(call cc-option,-fcx-limited-range)
-        +KBUILD_CFLAGS += $(call cc-option,-fcx-limited-range) 
-        +ifneq ($(GCC_TOOLCHAIN_DIR),)
-        +KBUILD_CFLAGS += $(call cc-option,-fdebug-prefix-map=$(GCC_TOOLCHAIN_DIR)=)
-        +endif
-        +
-         # Keep stack frames readable in panic reports
-         ifeq ($(cc-name),clang)
-             KBUILD_CFLAGS += -fno-optimize-sibling-calls
-        EOL
-        
-        # 创建第二个补丁：修复arm64 -EL错误
-        cat > arm64_vdso32_fix.patch << 'EOL'
-        diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
-        index xxxxxx..xxxxxx 100644
-        --- a/arch/arm64/Makefile
-        +++ b/arch/arm64/Makefile
-        @@ -69,12 +69,17 @@ KBUILD_CPPFLAGS	+= -mbig-endian
-         CHECKFLAGS	+= -D__AARCH64EB__
-         else
-         KBUILD_CPPFLAGS	+= -mlittle-endian
-        -AS		+= -EL
-        +AS		+= $(call cc-option,-EL,)
-         UTS_MACHINE	:= aarch64_be
-         else
-         KBUILD_CPPFLAGS	+= -mlittle-endian
-        -AS		+= -EL
-        +AS		+= $(call cc-option,-EL,)
-         LD		+= -ELF
-         endif
-         
-        -KBUILD_LDFLAGS	+= -maarch64linuxb
-        +KBUILD_LDFLAGS	+= $(call cc-option,-maarch64linuxb,)
-        +
-        +ifeq ($(cc-name),clang)
-        +KBUILD_CFLAGS += $(call cc-disable-warning, asm-operand-widths)
-        +KBUILD_CFLAGS += $(call cc-disable-warning, range-loop-construct)
-        +endif
-        EOL
-        
-        # 应用补丁
-        patch -p1 < clang_cross_compile_fix.patch || echo "Failed to apply Makefile patch, may already be applied or not needed"
-        patch -p1 < arm64_vdso32_fix.patch || echo "Failed to apply arm64 Makefile patch, may already be applied or not needed"
-        
-        # 如果存在vdso32相关文件，也需要修复
-        if [ -d "arch/arm64/kernel/vdso32" ]; then
-          echo "Fixing vdso32 prefix for newer Clang versions..."
-          if grep -q "\-\-prefix=" arch/arm64/kernel/vdso32/Makefile; then
-            sed -i 's/\(--prefix=\)\$\$\(abspath \$(obj)\/..\/..\/..\/\)\(\/\)/\1/g' arch/arm64/kernel/vdso32/Makefile
-          fi
         fi
 
     - name: Setup ccache
