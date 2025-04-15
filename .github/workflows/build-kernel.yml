@@ -135,71 +135,43 @@ jobs:
             echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/arm-linux-androideabi-" >> $GITHUB_ENV
         fi
 
-    - name: Setup Custom GCC Toolchains
-  if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true'
-  shell: bash
-  run: |
-    cd "$GITHUB_WORKSPACE/kernel_workspace"
-    
-    # Handle 64-bit toolchain
-    if [[ "${{ env.USE_CUSTOM_GCC_64 }}" == "true" ]]; then
-      echo "Processing GCC 64..."
-      url_64="${{ env.CUSTOM_GCC_64_SOURCE }}"
-      
-      if [[ "${url_64}" =~ \.tar\.gz ]]; then
-        echo "Downloading .tar.gz archive..."
-        wget -q --show-progress -O gcc64.tar.gz "${url_64}"
-        mkdir -p gcc-64
-        tar -xzf gcc64.tar.gz -C gcc-64 --strip-components=1
-        rm -f gcc64.tar.gz
-      elif [[ "${url_64}" =~ \.zip ]]; then
-        echo "Downloading .zip archive..."
-        wget -q --show-progress -O gcc64.zip "${url_64}"
-        mkdir -p gcc-64
-        unzip -q gcc64.zip -d gcc-64
-        rm -f gcc64.zip
-      elif [[ "${url_64}" =~ ^git ]]; then
-        echo "Cloning git repository..."
-        git clone "${url_64}" -b "${{ env.CUSTOM_GCC_64_BRANCH }}" gcc-64 --depth=1
-      else
-        echo "::error::Unsupported GCC 64 source format"
-        exit 1
-      fi
-      
-      # Set default binary prefix
-      gcc64_bin="${CUSTOM_GCC_64_BIN:-aarch64-linux-android-}"
-      echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${gcc64_bin}" >> $GITHUB_ENV
-    fi
+    - name: Download Custom-Gcc
+      if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace
+        if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
+          if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
+              if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.gz' ]]; then
+                wget -O gcc-64.tar.gz ${{ env.CUSTOM_GCC_64_SOURCE }}
+                mkdir gcc-64
+                tar -C gcc-64/ -zxvf gcc-64.tar.gz
+              else
+                git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
+              fi
+          else
+              wget -O gcc-64.zip ${{ env.CUSTOM_GCC_64_SOURCE }}
+              mkdir gcc-64
+              unzip gcc-64.zip -d gcc-64/
+          fi
+          echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
+        fi
 
-    # Handle 32-bit toolchain
-    if [[ "${{ env.USE_CUSTOM_GCC_32 }}" == "true" ]]; then
-      echo "Processing GCC 32..."
-      url_32="${{ env.CUSTOM_GCC_32_SOURCE }}"
-      
-      if [[ "${url_32}" =~ \.tar\.gz ]]; then
-        echo "Downloading .tar.gz archive..."
-        wget -q --show-progress -O gcc32.tar.gz "${url_32}"
-        mkdir -p gcc-32
-        tar -xzf gcc32.tar.gz -C gcc-32 --strip-components=1
-        rm -f gcc32.tar.gz
-      elif [[ "${url_32}" =~ \.zip ]]; then
-        echo "Downloading .zip archive..."
-        wget -q --show-progress -O gcc32.zip "${url_32}"
-        mkdir -p gcc-32
-        unzip -q gcc32.zip -d gcc-32
-        rm -f gcc32.zip
-      elif [[ "${url_32}" =~ ^git ]]; then
-        echo "Cloning git repository..."
-        git clone "${url_32}" -b "${{ env.CUSTOM_GCC_32_BRANCH }}" gcc-32 --depth=1
-      else
-        echo "::error::Unsupported GCC 32 source format"
-        exit 1
-      fi
-      
-      # Set default binary prefix
-      gcc32_bin="${CUSTOM_GCC_32_BIN:-arm-linux-androideabi-}"
-      echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${gcc32_bin}" >> $GITHUB_ENV
-    fi
+        if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
+          if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
+              if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.gz' ]]; then
+                wget -O gcc-32.tar.gz ${{ env.CUSTOM_GCC_32_SOURCE }}
+                mkdir gcc-32
+                tar -C gcc-32/ -zxvf gcc-32.tar.gz
+              else
+                git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
+              fi
+          else
+            wget -O gcc-32.zip ${{ env.CUSTOM_GCC_32_SOURCE }}
+            mkdir gcc-32
+            unzip gcc-32.zip -d gcc-32/
+          fi
+          echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
+        fi
 
     - name: Download mkbootimg tools
       if: env.BUILD_BOOT_IMG == 'true'
