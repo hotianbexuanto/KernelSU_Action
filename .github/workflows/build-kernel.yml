@@ -147,7 +147,6 @@ jobs:
                 tar -C gcc-64/ -zxvf gcc-64.tar.gz
               else
                 git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
-              fi
           else
           fi
           echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
@@ -161,7 +160,6 @@ jobs:
                 tar -C gcc-32/ -zxvf gcc-32.tar.gz
               else
                 git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
-              fi
           else
           fi
           echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
