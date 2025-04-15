@@ -117,19 +117,6 @@ jobs:
             unzip clang.zip -d clang-aosp/
         fi
 
-    - name: Setup Proton Clang environment
-      if: env.USE_CUSTOM_CLANG == 'true'
-      run: |
-        # 确保我们可以找到Proton Clang中的aarch64-linux-gnu和arm-linux-gnueabi目录
-        cd $GITHUB_WORKSPACE/kernel_workspace
-        # 验证目录是否存在
-        if [ -d "clang-aosp/aarch64-linux-gnu" ] && [ -d "clang-aosp/arm-linux-gnueabi" ]; then
-          echo "Proton Clang包含了所有必需的工具链，不需要额外的GCC工具链"
-        fi
-        
-        # 添加Proton Clang的bin目录到PATH
-        echo "PROTON_CLANG_PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin" >> $GITHUB_ENV
-
     - name: Download Gcc-aosp
       if: env.USE_CUSTOM_GCC_64 != 'true' || env.USE_CUSTOM_GCC_32 != 'true'
       run: |
@@ -202,64 +189,6 @@ jobs:
           echo "LOCALVERSION=" >> $GITHUB_ENV
         fi
 
-    - name: Apply Clang cross-compile fixes
-      if: env.USE_CUSTOM_CLANG == 'true'
-      run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        
-        # 修复1: "Makefile: Fix GCC_TOOLCHAIN_DIR prefix for Clang cross compilation"
-        cat > gcc_toolchain_fix.patch << 'EOL'
-        diff --git a/Makefile b/Makefile
-        index xxxxxxx..xxxxxxx 100644
-        --- a/Makefile
-        +++ b/Makefile
-        @@ -499,7 +499,11 @@ KBUILD_CFLAGS += $(call cc-option,-Wno-address-of-packed-member)
-         # Tell gcc to never replace conditional load with a non-conditional one
-         KBUILD_CFLAGS  += $(call cc-option,--param=allow-store-data-races=0)
-         # Clang options
-        -KBUILD_CFLAGS += $(call cc-option,-fcx-limited-range)
-        +KBUILD_CFLAGS += $(call cc-option,-fcx-limited-range) 
-        +ifneq ($(GCC_TOOLCHAIN_DIR),)
-        +KBUILD_CFLAGS += $(call cc-option,-fdebug-prefix-map=$(GCC_TOOLCHAIN_DIR)=)
-        +endif
-        +
-         # Keep stack frames readable in panic reports
-         ifeq ($(cc-name),clang)
-             KBUILD_CFLAGS += -fno-optimize-sibling-calls
-        EOL
-        
-        # 修复2: "arm64: vdso32: Fix '--prefix=' value for newer versions of clang"
-        cat > vdso32_fix.patch << 'EOL'
-        diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
-        index xxxxxxx..xxxxxxx 100644
-        --- a/arch/arm64/Makefile
-        +++ b/arch/arm64/Makefile
-        @@ -69,8 +69,8 @@ KBUILD_CPPFLAGS	+= -mbig-endian
-         CHECKFLAGS	+= -D__AARCH64EB__
-         else
-         KBUILD_CPPFLAGS	+= -mlittle-endian
-        -AS		+= -EL
-        -LD		+= -ELF
-        +AS		+= $(call cc-option,-EL,)
-        +LD		+= $(call cc-option,-ELF,)
-         endif
-         
-        -KBUILD_LDFLAGS	+= -maarch64linuxb
-        +KBUILD_LDFLAGS	+= $(call cc-option,-maarch64linuxb,)
-        EOL
-        
-        # 尝试应用补丁
-        patch -p1 < gcc_toolchain_fix.patch || echo "Failed to apply gcc_toolchain_fix patch, may be already patched or not needed"
-        patch -p1 < vdso32_fix.patch || echo "Failed to apply vdso32_fix patch, may be already patched or not needed"
-        
-        # 检查是否存在vdso32目录，如果存在，还需要修复其Makefile
-        if [ -d "arch/arm64/kernel/vdso32" ]; then
-          if grep -q "\-\-prefix=" arch/arm64/kernel/vdso32/Makefile; then
-            sed -i 's/\(--prefix=\)\$\$\(abspath \$(obj)\/..\/..\/..\/\)\(\/\)/\1/g' arch/arm64/kernel/vdso32/Makefile
-            echo "Fixed vdso32 Makefile prefix"
-          fi
-        fi
-
     - name: Download source boot image
       if: env.BUILD_BOOT_IMG == 'true'
       run: |
@@ -319,7 +248,6 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        # 设置PATH以包含Proton Clang的bin目录
         export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang-aosp/bin:$PATH
         export KBUILD_BUILD_HOST=Github-Action
         export KBUILD_BUILD_USER=$(echo ${{ github.actor }} | tr A-Z a-z)
@@ -327,42 +255,11 @@ jobs:
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
-        
-        # 显示构建环境信息
-        echo "使用Proton Clang构建，版本信息:"
-        clang --version
-        
-        # 构建命令，使用Proton Clang内置的工具链
-        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
-          CROSS_COMPILE=aarch64-linux-gnu- \
-          CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-          AR=llvm-ar \
-          NM=llvm-nm \
-          OBJCOPY=llvm-objcopy \
-          OBJDUMP=llvm-objdump \
-          STRIP=llvm-strip \
-          ${{ env.EXTRA_CMDS }} ${{ env.KERNEL_CONFIG }}
-          
+        make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
-            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} \
-              CROSS_COMPILE=aarch64-linux-gnu- \
-              CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-              AR=llvm-ar \
-              NM=llvm-nm \
-              OBJCOPY=llvm-objcopy \
-              OBJDUMP=llvm-objdump \
-              STRIP=llvm-strip \
-              ${{ env.EXTRA_CMDS }}
+            make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         else
-            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} \
-              CROSS_COMPILE=aarch64-linux-gnu- \
-              CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-              AR=llvm-ar \
-              NM=llvm-nm \
-              OBJCOPY=llvm-objcopy \
-              OBJDUMP=llvm-objdump \
-              STRIP=llvm-strip \
-              ${{ env.EXTRA_CMDS }}
+            make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
         fi
 
     - name: Check a kernel output files
