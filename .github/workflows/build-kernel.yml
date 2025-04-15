@@ -141,41 +141,47 @@ jobs:
     cd $GITHUB_WORKSPACE/kernel_workspace
 
     if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
-      if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *.tar.gz ]]; then
-        # 处理 .tar.gz 文件
-        wget -O gcc-64.tar.gz ${{ env.CUSTOM_GCC_64_SOURCE }}
+      gcc64_url="${{ env.CUSTOM_GCC_64_SOURCE }}"
+      if [[ "$gcc64_url" =~ \.tar\.gz($|\?) ]]; then
+        wget -O gcc-64.tar.gz "$gcc64_url"
         mkdir -p gcc-64
         tar -C gcc-64/ -zxvf gcc-64.tar.gz --strip-components=1
-      elif [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
-        # Git 仓库处理
-        git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
-      else
-        # 默认作为 ZIP 处理
-        wget -O gcc-64.zip ${{ env.CUSTOM_GCC_64_SOURCE }}
+      elif [[ "$gcc64_url" =~ \.zip($|\?) ]]; then
+        wget -O gcc-64.zip "$gcc64_url"
         mkdir -p gcc-64
         unzip gcc-64.zip -d gcc-64/
+      elif [[ "$gcc64_url" =~ ^git|\.git$ ]]; then
+        git clone "$gcc64_url" -b "${{ env.CUSTOM_GCC_64_BRANCH }}" gcc-64 --depth=1
+      else
+        echo "Unsupported GCC 64 source format"
+        exit 1
       fi
-      echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
+      # 设置默认二进制路径（根据实际目录结构调整）
+      gcc64_bin="${CUSTOM_GCC_64_BIN:-aarch64-linux-android-}"
+      echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/$gcc64_bin" >> $GITHUB_ENV
     fi
 
     if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
-         if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *.tar.gz ]]; then
-        # 处理 .tar.gz 文件
-            wget -O gcc-32.tar.gz ${{ env.CUSTOM_GCC_32_SOURCE }}
-            mkdir -p gcc-32
-            tar -C gcc-32/ -zxvf gcc-32.tar.gz --strip-components=1
-        elif [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
-        # Git 仓库处理
-        git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
-         else
-        # 默认作为 ZIP 处理
-            wget -O gcc-32.zip ${{ env.CUSTOM_GCC_32_SOURCE }}
-            mkdir -p gcc-32
-            unzip gcc-32.zip -d gcc-32/
-          fi
-      echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
-        fi
-    
+      gcc32_url="${{ env.CUSTOM_GCC_32_SOURCE }}"
+      if [[ "$gcc32_url" =~ \.tar\.gz($|\?) ]]; then
+        wget -O gcc-32.tar.gz "$gcc32_url"
+        mkdir -p gcc-32
+        tar -C gcc-32/ -zxvf gcc-32.tar.gz --strip-components=1
+      elif [[ "$gcc32_url" =~ \.zip($|\?) ]]; then
+        wget -O gcc-32.zip "$gcc32_url"
+        mkdir -p gcc-32
+        unzip gcc-32.zip -d gcc-32/
+      elif [[ "$gcc32_url" =~ ^git|\.git$ ]]; then
+        git clone "$gcc32_url" -b "${{ env.CUSTOM_GCC_32_BRANCH }}" gcc-32 --depth=1
+      else
+        echo "Unsupported GCC 32 source format"
+        exit 1
+      fi
+      # 设置默认二进制路径（根据实际目录结构调整）
+      gcc32_bin="${CUSTOM_GCC_32_BIN:-arm-linux-androideabi-}"
+      echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/$gcc32_bin" >> $GITHUB_ENV
+    fi
+
     - name: Download mkbootimg tools
       if: env.BUILD_BOOT_IMG == 'true'
       run: |
