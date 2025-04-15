@@ -135,54 +135,47 @@ jobs:
             echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/arm-linux-androideabi-" >> $GITHUB_ENV
         fi
 
-name: Download Custom-Gcc
-if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true'
-run: |
-  cd $GITHUB_WORKSPACE/kernel_workspace
-  if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
-    if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
-      # 处理 Git 仓库
-      git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
-    else
-      # 非 Git 仓库，检查是否为 tar.gz
-      if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.gz' ]]; then
-        echo "下载并解压 64 位 GCC (tar.gz)"
+    - name: Download Custom-Gcc
+  if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true'
+  run: |
+    cd $GITHUB_WORKSPACE/kernel_workspace
+
+    if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
+      if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *.tar.gz ]]; then
+        # 处理 .tar.gz 文件
         wget -O gcc-64.tar.gz ${{ env.CUSTOM_GCC_64_SOURCE }}
         mkdir -p gcc-64
-        tar -xzf gcc-64.tar.gz -C gcc-64/ --strip-components=1
+        tar -C gcc-64/ -zxvf gcc-64.tar.gz --strip-components=1
+      elif [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
+        # Git 仓库处理
+        git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
       else
-        # 假设为 zip 文件
-        echo "下载并解压 64 位 GCC (zip)"
+        # 默认作为 ZIP 处理
         wget -O gcc-64.zip ${{ env.CUSTOM_GCC_64_SOURCE }}
         mkdir -p gcc-64
         unzip gcc-64.zip -d gcc-64/
       fi
+      echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
     fi
-    echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
-  fi
 
-  if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
-    if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
-      # 处理 Git 仓库
-      git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
-    else
-      # 非 Git 仓库，检查是否为 tar.gz
-      if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.gz' ]]; then
-        echo "下载并解压 32 位 GCC (tar.gz)"
-        wget -O gcc-32.tar.gz ${{ env.CUSTOM_GCC_32_SOURCE }}
-        mkdir -p gcc-32
-        tar -xzf gcc-32.tar.gz -C gcc-32/ --strip-components=1
-      else
-        # 假设为 zip 文件
-        echo "下载并解压 32 位 GCC (zip)"
-        wget -O gcc-32.zip ${{ env.CUSTOM_GCC_32_SOURCE }}
-        mkdir -p gcc-32
-        unzip gcc-32.zip -d gcc-32/
-      fi
-    fi
-    echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
-  fi
-
+    if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
+         if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *.tar.gz ]]; then
+        # 处理 .tar.gz 文件
+            wget -O gcc-32.tar.gz ${{ env.CUSTOM_GCC_32_SOURCE }}
+            mkdir -p gcc-32
+            tar -C gcc-32/ -zxvf gcc-32.tar.gz --strip-components=1
+        elif [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
+        # Git 仓库处理
+        git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
+         else
+        # 默认作为 ZIP 处理
+            wget -O gcc-32.zip ${{ env.CUSTOM_GCC_32_SOURCE }}
+            mkdir -p gcc-32
+            unzip gcc-32.zip -d gcc-32/
+          fi
+      echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
+        fi
+    
     - name: Download mkbootimg tools
       if: env.BUILD_BOOT_IMG == 'true'
       run: |
