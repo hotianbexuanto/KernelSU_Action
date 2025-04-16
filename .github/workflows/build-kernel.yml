@@ -136,43 +136,67 @@ jobs:
         fi
 
     - name: Download Custom-Gcc
-      if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true'
-      run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace
-        if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
-          if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
-              if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.gz' ]]; then
-                wget -O gcc-64.tar.gz ${{ env.CUSTOM_GCC_64_SOURCE }}
-                mkdir gcc-64
-                tar -C gcc-64/ -zxvf gcc-64.tar.gz
-              else
-                git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
-              fi
-          else
-              wget -O gcc-64.zip ${{ env.CUSTOM_GCC_64_SOURCE }}
-              mkdir gcc-64
-              unzip gcc-64.zip -d gcc-64/
-          fi
-          echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
+  if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true'
+  run: |
+    cd $GITHUB_WORKSPACE/kernel_workspace
+    
+    # 处理64位GCC
+    if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
+      echo "Downloading Custom GCC 64..."
+      mkdir -p gcc-64
+      
+      if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
+        # Git 仓库处理
+        git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
+      else
+        # 处理压缩包格式
+        if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.gz' ]]; then
+          wget -O gcc-64.tar.gz ${{ env.CUSTOM_GCC_64_SOURCE }}
+          tar -zxvf gcc-64.tar.gz -C gcc-64/
+        elif [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.zip' ]]; then
+          wget -O gcc-64.zip ${{ env.CUSTOM_GCC_64_SOURCE }}
+          unzip gcc-64.zip -d gcc-64/
+        else
+          echo "Unsupported GCC 64 archive format"
+          exit 1
         fi
+      fi
+      
+      # 验证二进制路径
+      if [ -z "${{ env.CUSTOM_GCC_64_BIN }}" ]; then
+        echo "CUSTOM_GCC_64_BIN must be set (e.g. aarch64-linux-android-)"
+        exit 1
+      fi
+      echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/${{ env.CUSTOM_GCC_64_BIN }}" >> $GITHUB_ENV
+    fi
 
-        if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
-          if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
-              if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.gz' ]]; then
-                wget -O gcc-32.tar.gz ${{ env.CUSTOM_GCC_32_SOURCE }}
-                mkdir gcc-32
-                tar -C gcc-32/ -zxvf gcc-32.tar.gz
-              else
-                git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
-              fi
-          else
-            wget -O gcc-32.zip ${{ env.CUSTOM_GCC_32_SOURCE }}
-            mkdir gcc-32
-            unzip gcc-32.zip -d gcc-32/
-          fi
-          echo "GCC_32=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
+    # 处理32位GCC（逻辑同上）
+    if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
+      echo "Downloading Custom GCC 32..."
+      mkdir -p gcc-32
+      
+      if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
+        git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
+      else
+        if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.gz' ]]; then
+          wget -O gcc-32.tar.gz ${{ env.CUSTOM_GCC_32_SOURCE }}
+          tar -zxvf gcc-32.tar.gz -C gcc-32/
+        elif [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.zip' ]]; then
+          wget -O gcc-32.zip ${{ env.CUSTOM_GCC_32_SOURCE }}
+          unzip gcc-32.zip -d gcc-32/
+        else
+          echo "Unsupported GCC 32 archive format"
+          exit 1
         fi
-
+      fi
+      
+      if [ -z "${{ env.CUSTOM_GCC_32_BIN }}" ]; then
+        echo "CUSTOM_GCC_32_BIN must be set (e.g. arm-linux-androideabi-)"
+        exit 1
+      fi
+      echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
+    fi
+    
     - name: Download mkbootimg tools
       if: env.BUILD_BOOT_IMG == 'true'
       run: |
