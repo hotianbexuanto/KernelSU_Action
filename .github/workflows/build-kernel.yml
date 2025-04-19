@@ -377,14 +377,14 @@ jobs:
         ./patch_linux
         if [ -f oImage ]; then
           mv oImage Image
-          mkdir -p AnyKernel3-kpm
-          cp -r ../AnyKernel3/META-INF AnyKernel3-kpm/ 2>/dev/null || true
-          cp ../AnyKernel3/anykernel.sh AnyKernel3-kpm/ 2>/dev/null || true
-          cp ../AnyKernel3/banner AnyKernel3-kpm/ 2>/dev/null || true
-          cp ../AnyKernel3/modules AnyKernel3-kpm/ 2>/dev/null || true
-          cp ../AnyKernel3/patch AnyKernel3-kpm/ 2>/dev/null || true
-          cp Image AnyKernel3-kpm/
-          rm -f AnyKernel3-kpm/Image.gz* AnyKernel3-kpm/zImage* 2>/dev/null || true
+          git clone https://github.com/osm0sis/AnyKernel3 --depth=1 AnyKernel3-kpm
+          cd AnyKernel3-kpm
+          rm -rf .git* README.md
+          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
+          sed -i 's!BLOCK=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!BLOCK=auto;!g' anykernel.sh
+          sed -i 's/IS_SLOT_DEVICE=0;/is_slot_device=auto;/g' anykernel.sh
+          cp ../Image ./
+          cd ..
           echo "KPM_IMAGE_READY=true" >> $GITHUB_ENV
         else
           echo "Failed to generate KPM Image"
