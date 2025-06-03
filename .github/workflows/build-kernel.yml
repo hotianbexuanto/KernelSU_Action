@@ -297,7 +297,7 @@ jobs:
           fi
           
           if grep -q "KERNEL_TYPE:" build.log; then
-              KERNEL_TYPE=$(grep "KERNEL_TYPE:" build.log | head -n1 | sed -E 's/.*KERNEL_TYPE: ([^-]*).*/\1/')
+              KERNEL_TYPE=$(grep "KERNEL_TYPE:" build.log | head -n1 | sed -E 's/.*KERNEL_TYPE: ([^,]*).*/\1/' | tr -d '\r')
               echo "KERNEL_TYPE=$KERNEL_TYPE" >> $GITHUB_ENV
           else
               echo "KERNEL_TYPE=unknown" >> $GITHUB_ENV
