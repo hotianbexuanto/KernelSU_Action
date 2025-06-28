@@ -280,7 +280,7 @@ jobs:
           else
               make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} 2>&1 | tee build.log
           fi
-          
+
           # 从构建日志中获取SukiSU版本、内核版本和类型
           if grep -q "SukiSU version:" build.log; then
               SUKISU_VERSION=$(grep "SukiSU version:" build.log | head -n1 | sed -E 's/.*SukiSU version: ([0-9]+).*/\1/')
@@ -288,21 +288,21 @@ jobs:
           else
               echo "SUKISU_VERSION=unknown" >> $GITHUB_ENV
           fi
-          
+
           if grep -q "KERNEL_VERSION:" build.log; then
               KERNEL_VERSION=$(grep "KERNEL_VERSION:" build.log | head -n1 | sed -E 's/.*KERNEL_VERSION: ([0-9\.]+).*/\1/')
               echo "KERNEL_VERSION=$KERNEL_VERSION" >> $GITHUB_ENV
           else
               echo "KERNEL_VERSION=unknown" >> $GITHUB_ENV
           fi
-          
+
           if grep -q "KERNEL_TYPE:" build.log; then
               KERNEL_TYPE=$(grep "KERNEL_TYPE:" build.log | head -n1 | sed -E 's/.*KERNEL_TYPE: ([^,]*).*/\1/' | tr -d '\r')
               echo "KERNEL_TYPE=$KERNEL_TYPE" >> $GITHUB_ENV
           else
               echo "KERNEL_TYPE=unknown" >> $GITHUB_ENV
           fi
-          
+
           # 替换KernelSU为SukiSU
           echo "UPLOADNAME=-SukiSU_${SUKISU_VERSION}-${KERNEL_TYPE}-${{ env.KERNEL_VERSION }}" >> $GITHUB_ENV
 
