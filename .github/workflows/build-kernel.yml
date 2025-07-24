@@ -310,7 +310,7 @@ jobs:
           fi
 
           # 替换KernelSU为SukiSU
-          echo "UPLOADNAME=-SukiSU_${SUKISU_VERSION}-${KERNEL_TYPE}-\${KERNEL_VERSION}" >> $GITHUB_ENV
+          echo "UPLOADNAME=-SukiSU_${SUKISU_VERSION}-${KERNEL_TYPE}-${{ env.KERNEL_VERSION }}" >> $GITHUB_ENV
 
       - name: Check a kernel output files
         run: |
