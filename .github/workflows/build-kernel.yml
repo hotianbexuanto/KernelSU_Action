@@ -194,7 +194,8 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         git clone --recursive ${{ env.KERNEL_SOURCE }} -b ${{ env.KERNEL_SOURCE_BRANCH }} android-kernel --depth=1
-        git clone https://github.com/tiann/KernelSU.git --depth 1 android-kernel/drivers/kernelsu
+        git clone https://github.com/tiann/KernelSU.git --depth 1
+        mv KernelSU/kernel android-kernel/drivers/kernelsu
         if [[ ${{ env.ADD_LOCALVERSION_TO_FILENAME }} == 'true' ]]; then
           echo "LOCALVERSION=$(cat android-kernel/localversion)" >> $GITHUB_ENV
         else
