@@ -1,6 +1,20 @@
 name: Build Kernel
 on:
   workflow_dispatch:
+    inputs:
+      sukisu_repo:
+        description: '选择 SukiSU 仓库源'
+        required: false
+        default: 'SukiSU-Ultra'
+        type: choice
+        options:
+          - 'SukiSU-Ultra'
+          - 'hotianbexuanto'
+      sukisu_branch:
+        description: 'SukiSU 分支 (查看可用分支: SukiSU-Ultra→github.com/SukiSU-Ultra/SukiSU-Ultra/branches | hotianbexuanto→github.com/hotianbexuanto/SukiSU-Ultra/branches)'
+        required: false
+        default: 'susfs-main'
+        type: string
 
 jobs:
   build:
@@ -223,7 +237,34 @@ jobs:
         if: env.ENABLE_KERNELSU == 'true'
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+
+          # 获取用户选择的仓库和分支
+          SUKISU_REPO="${{ github.event.inputs.sukisu_repo }}"
+          SUKISU_BRANCH="${{ github.event.inputs.sukisu_branch }}"
+
+          # 如果没有手动输入，使用默认值
+          if [ -z "$SUKISU_REPO" ]; then
+            SUKISU_REPO="SukiSU-Ultra"
+          fi
+
+          if [ -z "$SUKISU_BRANCH" ]; then
+            SUKISU_BRANCH="susfs-main"
+          fi
+
+          # 根据选择的仓库构建 setup.sh URL
+          if [ "$SUKISU_REPO" == "hotianbexuanto" ]; then
+            SETUP_URL="https://raw.githubusercontent.com/hotianbexuanto/SukiSU-Ultra/main/kernel/setup.sh"
+            echo "使用仓库: hotianbexuanto/SukiSU-Ultra"
+          else
+            SETUP_URL="https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh"
+            echo "使用仓库: SukiSU-Ultra/SukiSU-Ultra"
+          fi
+
+          echo "使用分支: $SUKISU_BRANCH"
+          echo "Setup 脚本 URL: $SETUP_URL"
+
+          # 执行 setup 脚本
+          curl -LSs "$SETUP_URL" | bash -s "$SUKISU_BRANCH"
           KSU_VERSION=$(cd KernelSU && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
 
       - name: Setup Configuration for Kernel
