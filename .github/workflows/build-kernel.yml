@@ -15,6 +15,11 @@ on:
         required: false
         default: 'susfs-main'
         type: string
+      sukisu_version:
+        description: 'SukiSU 版本/标签 (留空使用最新标签版本，或指定特定标签/提交哈希)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build:
@@ -238,9 +243,10 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
 
-          # 获取用户选择的仓库和分支
+          # 获取用户选择的仓库、分支和版本
           SUKISU_REPO="${{ github.event.inputs.sukisu_repo }}"
           SUKISU_BRANCH="${{ github.event.inputs.sukisu_branch }}"
+          SUKISU_VERSION="${{ github.event.inputs.sukisu_version }}"
 
           # 如果没有手动输入，使用默认值
           if [ -z "$SUKISU_REPO" ]; then
@@ -261,10 +267,29 @@ jobs:
           fi
 
           echo "使用分支: $SUKISU_BRANCH"
+
+          # 确定要传递给 setup.sh 的参数
+          # 优先使用版本参数，如果版本为空则使用分支参数
+          if [ -n "$SUKISU_VERSION" ]; then
+            SETUP_ARG="$SUKISU_VERSION"
+            echo "使用指定版本: $SUKISU_VERSION"
+          elif [ -n "$SUKISU_BRANCH" ]; then
+            SETUP_ARG="$SUKISU_BRANCH"
+            echo "使用分支版本: $SUKISU_BRANCH"
+          else
+            SETUP_ARG=""
+            echo "使用最新标签版本"
+          fi
+
           echo "Setup 脚本 URL: $SETUP_URL"
 
           # 执行 setup 脚本
-          curl -LSs "$SETUP_URL" | bash -s "$SUKISU_BRANCH"
+          if [ -n "$SETUP_ARG" ]; then
+            curl -LSs "$SETUP_URL" | bash -s "$SETUP_ARG"
+          else
+            curl -LSs "$SETUP_URL" | bash
+          fi
+
           KSU_VERSION=$(cd KernelSU && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
 
       - name: Setup Configuration for Kernel
