@@ -1,6 +1,12 @@
 name: Build Kernel
 on:
   workflow_dispatch:
+    inputs:
+      kernelsu_version:
+        description: 'KernelSU版本参数 (例如: susfs-text, susfs, main等)'
+        required: true
+        default: 'susfs-text'
+        type: string
 
 jobs:
   build:
@@ -223,7 +229,7 @@ jobs:
         if: env.ENABLE_KERNELSU == 'true'
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-text
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s ${{ inputs.kernelsu_version }}
           KSU_VERSION=$(cd KernelSU && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
 
       - name: Setup Configuration for Kernel
