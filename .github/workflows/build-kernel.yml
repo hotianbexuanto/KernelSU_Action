@@ -238,6 +238,12 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
 
+          # 获取用户输入的分支版本
+          KERNELSU_VERSION="${{ inputs.kernelsu_version }}"
+          if [ -z "$KERNELSU_VERSION" ]; then
+            KERNELSU_VERSION="susfs-main"
+          fi
+
           # 根据选择的仓库构建 setup.sh URL
           SUKISU_REPO="${{ inputs.sukisu_repo }}"
           if [ -z "$SUKISU_REPO" ]; then
@@ -246,16 +252,19 @@ jobs:
 
           if [ "$SUKISU_REPO" == "hotianbexuanto" ]; then
             SETUP_URL="https://raw.githubusercontent.com/hotianbexuanto/SukiSU-Ultra/main/kernel/setup.sh"
+            echo "========================================="
             echo "使用仓库: hotianbexuanto/SukiSU-Ultra"
           else
             SETUP_URL="https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh"
+            echo "========================================="
             echo "使用仓库: SukiSU-Ultra/SukiSU-Ultra"
           fi
 
-          echo "使用分支/版本: ${{ inputs.kernelsu_version }}"
           echo "Setup 脚本 URL: $SETUP_URL"
+          echo "传递的分支参数: '$KERNELSU_VERSION'"
+          echo "========================================="
 
-          curl -LSs "$SETUP_URL" | bash -s ${{ inputs.kernelsu_version }}
+          curl -LSs "$SETUP_URL" | bash -s "$KERNELSU_VERSION"
           KSU_VERSION=$(cd KernelSU && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
 
       - name: Setup Configuration for Kernel
