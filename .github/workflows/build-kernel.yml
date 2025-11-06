@@ -436,39 +436,6 @@ jobs:
           name: Image${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
           path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/Image
 
-      - name: Patch and Package KPM Image
-        if: env.CHECK_FILE_IS_OK == 'true'
-        run: |
-          cd $GITHUB_WORKSPACE/kernel_workspace
-          mkdir -p kpm-temp
-          cp android-kernel/out/arch/${{ env.ARCH }}/boot/Image kpm-temp/
-          cp android-kernel/patch_kpm/patch_linux kpm-temp/
-          cd kpm-temp
-          chmod +x patch_linux
-          ./patch_linux
-          if [ -f oImage ]; then
-            mv oImage Image
-            git clone https://github.com/osm0sis/AnyKernel3 --depth=1 AnyKernel3-kpm
-            cd AnyKernel3-kpm
-            rm -rf .git* README.md
-            sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
-            sed -i 's!BLOCK=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;!BLOCK=auto;!g' anykernel.sh
-            sed -i 's/IS_SLOT_DEVICE=0;/is_slot_device=auto;/g' anykernel.sh
-            cp ../Image ./
-            cd ..
-            echo "KPM_IMAGE_READY=true" >> $GITHUB_ENV
-          else
-            echo "Failed to generate KPM Image"
-            exit 1
-          fi
-
-      - name: Upload KPM AnyKernel3
-        if: env.KPM_IMAGE_READY == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: kpm-Image${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
-          path: kernel_workspace/kpm-temp/AnyKernel3-kpm/*
-
       - name: Upload AnyKernel3
         if: env.CHECK_FILE_IS_OK == 'true'
         uses: actions/upload-artifact@v4
