@@ -5,7 +5,7 @@ on:
       sukisu_repo:
         description: '选择 SukiSU 仓库源'
         required: false
-        default: 'hotianbexuanto'
+        default: 'SukiSU-Ultra'
         type: choice
         options:
           - 'hotianbexuanto'
