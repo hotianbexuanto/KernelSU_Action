@@ -433,7 +433,7 @@ jobs:
         if: env.CHECK_FILE_IS_OK == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Image${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
+          name: Image-${{ env.DEVICE }}
           path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/Image
 
       - name: Upload AnyKernel3
