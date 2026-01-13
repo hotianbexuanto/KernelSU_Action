@@ -13,7 +13,7 @@ on:
       kernelsu_version:
         description: 'KernelSU版本参数 (例如: susfs-text, susfs-main, main等)'
         required: true
-        default: 'susfs-main'
+        default: ''
         type: string
 
 jobs:
